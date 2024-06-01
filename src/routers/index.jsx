@@ -5,6 +5,7 @@ import CallHistory from "../pages/CallHistory";
 import CdrReports from "../pages/CdrReports";
 import CallPage from "../pages/Calls";
 import MainLayout from "../layouts/MainLayout";
+import InCallPage from "../pages/InCall";
 
 const routers = createBrowserRouter([
     {
@@ -15,7 +16,8 @@ const routers = createBrowserRouter([
             { index: true, element: <HomePage /> },
             { path: "/call-history", element: <CallHistory /> },
             { path: "/cdr-reports", element: <CdrReports /> },
-            { path: "/calls", element: <CallPage /> }
+            { path: "/calls", element: <CallPage /> },
+            { path: "/in-call", element: <InCallPage /> }
         ]
     }
 ]);

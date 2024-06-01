@@ -5,8 +5,9 @@ const theme = createTheme({
     fontFamilyMonospace: "Monaco, Courier, monospace",
     headings: { fontFamily: "Greycliff CF, sans-serif" },
 
-    primaryColor: "indigo",
+    // primaryColor: "#4C6EF5",
     // focusRing: 'auto' | 'always' | 'never';
+    primary: "#4C6EF5",
     focusRing: "never",
     autoContrast: true
     // fontSmoothing: boolean;

@@ -23,9 +23,11 @@ const MainLayout = () => {
 
             <Flex>
                 <ScrollArea
-                    offsetScrollbars
+                    // offsetScrollbars
                     scrollbarSize={8}
-                    w={86}
+                    scrollbars='y'
+                    type='auto'
+                    w={96}
                     bg={"white"}
                     style={{
                         height: `calc(100vh - 60px)`,
@@ -37,10 +39,12 @@ const MainLayout = () => {
                 </ScrollArea>
 
                 <ScrollArea
-                    offsetScrollbars
+                    // offsetScrollbars
                     scrollbarSize={8}
+                    scrollbars='y'
+                    type='auto'
                     w={"100%"}
-                    px={10}
+                    // px={10}
                     style={{
                         height: `calc(100vh - 60px)`
                     }}

@@ -1,5 +1,12 @@
+import { Flex } from "@mantine/core";
+import AccountInfo from "./AccountInfo";
+
 const RightHeader = () => {
-    return <div>r</div>;
+    return (
+        <Flex align={"center"}>
+            <AccountInfo />
+        </Flex>
+    );
 };
 
 export default RightHeader;
