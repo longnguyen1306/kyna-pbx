@@ -5,6 +5,7 @@ import styles from "../../assets/styles/Calls.module.scss";
 import CallHistoryItem from "./components/CallHistoryItem";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const tabData = [{ value: "callHistory", label: "Lịch sử cuộc gọi" }];
 
@@ -16,6 +17,10 @@ const CallPage = () => {
     const navigate = useNavigate();
 
     const handleMakeCall = () => {
+        if (!phoneNumber) {
+            return toast.error("Nhập một số điện thoại hợp lệ");
+        }
+
         return navigate("/in-call", {
             state: {
                 callType: "callOut",

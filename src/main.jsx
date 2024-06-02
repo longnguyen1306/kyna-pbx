@@ -13,15 +13,18 @@ import { RouterProvider } from "react-router-dom";
 import routers from "./routers";
 import "./index.css";
 import { store } from "./redux/store";
+import { JsSipProvider } from "./providers/sips/JsSipProvider";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <React.StrictMode>
-        <Provider store={store}>
-            <MantineProvider theme={theme} defaultColorScheme='light' classNamesPrefix='lnd'>
+    // <React.StrictMode>
+    <Provider store={store}>
+        <MantineProvider theme={theme} defaultColorScheme='light' classNamesPrefix='lnd'>
+            <JsSipProvider>
                 <RouterProvider router={routers} />
                 <Tooltip id='app-tooltip' />
                 <ToastContainer />
-            </MantineProvider>
-        </Provider>
-    </React.StrictMode>
+            </JsSipProvider>
+        </MantineProvider>
+    </Provider>
+    // </React.StrictMode>
 );
