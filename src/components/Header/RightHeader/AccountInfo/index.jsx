@@ -1,8 +1,11 @@
 import { Menu, rem, Avatar, useMantineTheme } from "@mantine/core";
 import { IconSettings, IconMessageCircle, IconLogout } from "@tabler/icons-react";
+import { useDispatch } from "react-redux";
+import { logout } from "../../../../redux/slices/authSlice";
 
 const AccountInfo = () => {
     const theme = useMantineTheme();
+    const dispatch = useDispatch();
 
     return (
         <Menu shadow='md' width={200} position={"bottom-end"} withArrow>
@@ -33,6 +36,7 @@ const AccountInfo = () => {
                 <Menu.Divider />
 
                 <Menu.Item
+                    onClick={() => dispatch(logout())}
                     color='red'
                     leftSection={<IconLogout style={{ width: rem(16), height: rem(16) }} />}
                 >
