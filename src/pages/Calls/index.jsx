@@ -1,4 +1,15 @@
-import { Flex, useMantineTheme, Text, Input, ActionIcon, Dialog, Button } from "@mantine/core";
+import {
+    Flex,
+    useMantineTheme,
+    Text,
+    Input,
+    ActionIcon,
+    Dialog,
+    Button,
+    ScrollArea,
+    Radio,
+    Group
+} from "@mantine/core";
 import { IconHistory, IconPhone, IconArrowLeft } from "@tabler/icons-react";
 import { useDisclosure, useHover } from "@mantine/hooks";
 import { useContext, useEffect, useState } from "react";
@@ -7,6 +18,7 @@ import JsSipContext from "../../providers/sips/JsSipProvider";
 import { useDispatch, useSelector } from "react-redux";
 import { handleSetCallStatus, handleSetInCall } from "../../redux/slices/jsSipSlice";
 import InCall from "./components/InCall";
+import CallHistoryItem from "./components/CallHistoryItem";
 
 const regexPhone = new RegExp("^[0-9]+$");
 
@@ -17,6 +29,7 @@ const CallPage = () => {
     const { inCall } = useSelector((state) => state.jsSip);
     const dispatch = useDispatch();
     const [opened, { toggle, close }] = useDisclosure(false);
+    const [checkBoxFilterData, setCheckBoxFilterData] = useState("all");
 
     const handleClickCall = () => {
         if (!regexPhone.test(phoneNumber) || phoneNumber.length <= 4) {
@@ -102,6 +115,7 @@ const CallPage = () => {
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
                             w='100%'
+                            size={"md"}
                             placeholder='Nhập số điện thoại cần gọi...'
                         />
 
@@ -126,7 +140,183 @@ const CallPage = () => {
                     </Flex>
                 </Flex>
 
-                <Flex w={"100%"}>{inCall ? <InCall phoneNumber={phoneNumber} /> : <Flex>bbb</Flex>}</Flex>
+                <Flex w={"100%"}>
+                    {inCall ? (
+                        <InCall phoneNumber={phoneNumber} />
+                    ) : (
+                        <Flex direction='column' w={"100%"} px={30} gap={20}>
+                            <Flex direction='column' justify='space-between' h={100}>
+                                <Flex h={"50%"} align={"center"} justify='space-between'>
+                                    <Flex align={"center"} gap={10}>
+                                        <IconArrowLeft size={18} />
+                                        <Text>Lịch sử cuộc gọi hôm nay</Text>
+                                    </Flex>
+
+                                    <Flex align={"center"} gap={10}>
+                                        <Text>123</Text>
+                                        <Text>Cuộc gọi</Text>
+                                    </Flex>
+                                </Flex>
+
+                                <Flex h={"50%"} align={"center"} justify={"space-between"}>
+                                    <Flex>
+                                        <Radio.Group
+                                            name='favoriteFramework'
+                                            value={checkBoxFilterData}
+                                            onChange={setCheckBoxFilterData}
+                                        >
+                                            <Group mt='xs'>
+                                                <Radio
+                                                    color='indigo'
+                                                    value='all'
+                                                    label='All'
+                                                    styles={{
+                                                        label: {
+                                                            cursor: "pointer",
+                                                            textTransform: "uppercase"
+                                                        }
+                                                    }}
+                                                />
+                                                <Radio
+                                                    color='indigo'
+                                                    value='noAnswer'
+                                                    label='no answer'
+                                                    styles={{
+                                                        label: {
+                                                            cursor: "pointer",
+                                                            textTransform: "uppercase"
+                                                        }
+                                                    }}
+                                                />
+                                                <Radio
+                                                    color='indigo'
+                                                    value='answered'
+                                                    label='answered'
+                                                    styles={{
+                                                        label: {
+                                                            cursor: "pointer",
+                                                            textTransform: "uppercase"
+                                                        }
+                                                    }}
+                                                />
+                                                <Radio
+                                                    color='indigo'
+                                                    value='failed'
+                                                    label='failed'
+                                                    styles={{
+                                                        label: {
+                                                            cursor: "pointer",
+                                                            textTransform: "uppercase"
+                                                        }
+                                                    }}
+                                                />
+                                            </Group>
+                                        </Radio.Group>
+                                    </Flex>
+
+                                    <Flex>
+                                        <Input
+                                            size='md'
+                                            radius='md'
+                                            placeholder='Tìm số điện thoại...'
+                                            w={300}
+                                        />
+                                    </Flex>
+                                </Flex>
+                            </Flex>
+
+                            <ScrollArea
+                                // offsetScrollbars
+                                scrollbarSize={8}
+                                scrollbars='y'
+                                type='auto'
+                                bg='white'
+                                style={{
+                                    height: "calc(100vh - 180px)",
+                                    width: "100%",
+                                    borderRightColor: theme.colors.gray[1],
+                                    borderRightStyle: "solid"
+                                }}
+                            >
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                                <CallHistoryItem />
+                            </ScrollArea>
+                        </Flex>
+                    )}
+                </Flex>
             </Flex>
 
             <Dialog

@@ -44,8 +44,8 @@ const SipInfo = () => {
 
             <Flex fz={11} align='center' gap={4}>
                 SIP_NUMBER:
-                <Text fz={13} c={sipNumber ? theme.colors.indigo[7] : theme.colors.red[7]}>
-                    {sipNumber ? sipNumber : "null"}
+                <Text fz={13} c={user?.user?.sipNumber ? theme.colors.indigo[7] : theme.colors.red[7]}>
+                    {user?.user?.sipNumber}
                 </Text>
             </Flex>
         </Flex>

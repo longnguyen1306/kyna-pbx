@@ -1,12 +1,9 @@
 import * as JsSIP from "jssip";
 import { createContext, useEffect, useState } from "react";
 import {
-    CALL_DIRECTION_INCOMING,
     CALL_DIRECTION_OUTGOING,
-    CALL_STATUS_ACTIVE,
     CALL_STATUS_IDLE,
     CALL_STATUS_STARTING,
-    CALL_STATUS_STOPPING,
     SIP_ERROR_TYPE_CONFIGURATION,
     SIP_ERROR_TYPE_CONNECTION,
     SIP_ERROR_TYPE_REGISTRATION,
@@ -16,18 +13,14 @@ import {
     SIP_STATUS_ERROR,
     SIP_STATUS_REGISTERED
 } from "./libs/enums";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
     handleSetCallDirection,
     handleSetCallStatus,
-    handleSetInCall,
     handleSetSipStatus,
     handleSetWsStatus
 } from "../../redux/slices/jsSipSlice";
-import { Bounce, toast } from "react-toastify";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-import { Navigate, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const JsSipContext = createContext();
 
@@ -43,20 +36,21 @@ export const JsSipProvider = ({ children }) => {
     const [originator, setOriginator] = useState(null);
     const [UA, setUA] = useState(null);
     const dispatch = useDispatch();
+    const { user: userData } = useSelector((state) => state.auth);
 
     let ua;
     let remoteAudio;
 
     // JsSIP.debug.disable("JsSIP:*");
 
-    const reinitializeJsSIP = async () => {
+    const reinitializeJsSIP = async (userData) => {
         if (ua) {
             ua.stop();
             ua = null;
         }
 
-        const user = 99999;
-        const password = "m3xAks86m7KKJU6AbU5Sk4HZ2aa";
+        const user = userData?.user?.sipNumber;
+        const password = userData?.user?.sipPassword;
 
         if (!user) {
             setSipStatus(SIP_STATUS_DISCONNECTED);
@@ -281,7 +275,7 @@ export const JsSipProvider = ({ children }) => {
         remoteAudio.id = "dve-provider-audio";
         window.document.body.appendChild(remoteAudio);
 
-        reinitializeJsSIP();
+        reinitializeJsSIP(userData);
     }, []);
 
     return (

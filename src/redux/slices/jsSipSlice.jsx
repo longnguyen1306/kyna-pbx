@@ -16,6 +16,9 @@ export const jsSipSlice = createSlice({
         handleSetSipStatus: (state, action) => {
             state.sipStatus = action.payload;
         },
+        handleSetSipNumber: (state, action) => {
+            state.sipNumber = action.payload;
+        },
         handleSetWsStatus: (state, action) => {
             state.wsStatus = action.payload;
         },
@@ -37,7 +40,8 @@ export const {
     handleSetWsStatus,
     handleSetInCall,
     handleSetCallStatus,
-    handleSetCallDirection
+    handleSetCallDirection,
+    handleSetSipNumber
 } = jsSipSlice.actions;
 
 export default jsSipSlice.reducer;
