@@ -4,21 +4,18 @@ import { useContext, useEffect, useState } from "react";
 import JsSipContext from "../../providers/sips/JsSipProvider";
 import { fancyTimeFormat } from "../../lib/utils/dateTimeFunction";
 import { toast } from "react-toastify";
+// import { handleSetInBoundCall } from "../../redux/slices/jsSipSlice";
+import { useDispatch } from "react-redux";
 
 const InCallPage = () => {
     const location = useLocation();
     const theme = useMantineTheme();
     const [time, setTime] = useState(0);
     const [callStatus, setCallStatus] = useState(null);
-    const [callType, setCallType] = useState(() => {
-        const { callType } = location.state;
-        return callType ? callType : null;
-    });
+    const [callType, setCallType] = useState(null);
+    const dispatch = useDispatch();
 
-    const [phoneNumber, setPhoneNumber] = useState(() => {
-        const { phoneNumber } = location.state;
-        return phoneNumber ? phoneNumber : null;
-    });
+    const [phoneNumber, setPhoneNumber] = useState(null);
 
     const { UA, stopCall, answerCall, rtcSession } = useContext(JsSipContext);
 
@@ -64,12 +61,16 @@ const InCallPage = () => {
     };
 
     useEffect(() => {
-        if (callType === "callOut") {
+        if (location.state?.callType) {
+            setCallStatus(location.state?.callType);
+        }
+
+        if (location.state?.callType === "callOut") {
             setTimeout(() => {
-                startCall(phoneNumber);
+                startCall(location.state?.phoneNumber);
             }, 2000);
         }
-    }, []);
+    }, [location, callType]);
 
     useEffect(() => {
         if (rtcSession && rtcSession?.direction === "outgoing") {
@@ -93,9 +94,11 @@ const InCallPage = () => {
             });
             rtcSession.on("connecting", function (e) {
                 console.log("in connecting");
+                toast.info("Có cuộc gọi đến...");
             });
             rtcSession.on("peerconnection", function (data) {
                 data.peerconnection.addEventListener("addstream", function (e) {
+                    console.log("peerconnection");
                     // set remote audio stream
                     const audio = document.createElement("audio");
                     audio.srcObject = e.stream;
@@ -118,7 +121,9 @@ const InCallPage = () => {
     }, [callStatus, time]);
 
     const handleHangupCall = () => {
+        dispatch(handleSetInBoundCall(false));
         stopCall();
+
         setCallType(null);
     };
 
@@ -138,11 +143,11 @@ const InCallPage = () => {
                     borderRadius: 6
                 }}
             >
-                <Text span>{callType === "callOut" ? "Đang gọi đi" : "Gọi đến"}</Text>
-                <Text span>/</Text>
                 <Text span onClick={answerCall}>
-                    {phoneNumber}
+                    {callType === "callOut" ? "Đang gọi đi" : "Gọi đến"}
                 </Text>
+                <Text span>/</Text>
+                <Text span>{phoneNumber}</Text>
                 <Text span>
                     {callStatus === "connecting"
                         ? "Đang kết nối"

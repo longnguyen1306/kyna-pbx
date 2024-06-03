@@ -8,7 +8,8 @@ export const userLoginByThunk = createAsyncThunk(
             const response = await axiosCustom.post(`/auth/login`, data);
             return response.data;
         } catch (err) {
-            return rejectWithValue(err.response.data);
+            console.log("errerrerr", err);
+            return rejectWithValue(err);
         }
     }
 );
@@ -39,8 +40,8 @@ export const authSlice = createSlice({
             }
             state.isLoading = false;
         });
-        builder.addCase(userLoginByThunk.rejected, (state, action) => {
-            console.log("rejected", action);
+        builder.addCase(userLoginByThunk.rejected, (state) => {
+            console.log("rejected");
         });
     }
 });

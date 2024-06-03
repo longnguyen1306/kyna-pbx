@@ -14,11 +14,20 @@ import {
     SIP_STATUS_CONNECTING,
     SIP_STATUS_DISCONNECTED,
     SIP_STATUS_ERROR,
-    SIP_STATUS_REGISTERED,
-    WS_STATUS_CONNECTING
+    SIP_STATUS_REGISTERED
 } from "./libs/enums";
 import { useDispatch } from "react-redux";
-import { handleSetSipStatus, handleSetWsStatus } from "../../redux/slices/jsSipSlice";
+import {
+    handleSetCallDirection,
+    handleSetCallStatus,
+    handleSetInCall,
+    handleSetSipStatus,
+    handleSetWsStatus
+} from "../../redux/slices/jsSipSlice";
+import { Bounce, toast } from "react-toastify";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import { Navigate, useNavigate } from "react-router-dom";
 
 const JsSipContext = createContext();
 
@@ -30,13 +39,15 @@ export const JsSipProvider = ({ children }) => {
     const [callDirection, setCallDirection] = useState(null);
     const [callCounterpart, setCallCounterpart] = useState(null);
     const [rtcSession, setRtcSession] = useState(null);
+    const [rtcRequest, setRtcRequest] = useState(null);
+    const [originator, setOriginator] = useState(null);
     const [UA, setUA] = useState(null);
     const dispatch = useDispatch();
 
     let ua;
     let remoteAudio;
 
-    JsSIP.debug.disable("JsSIP:*");
+    // JsSIP.debug.disable("JsSIP:*");
 
     const reinitializeJsSIP = async () => {
         if (ua) {
@@ -168,44 +179,8 @@ export const JsSipProvider = ({ children }) => {
                 return;
             }
             setRtcSession(rtcSession);
-
-            console.log("rtcSessionrtcSessionrtcSessionrtcSession", rtcSession);
-
-            // if (rtcSession.direction === "incoming") {
-            //     // incoming call here
-            //     rtcSession.on("accepted", function () {
-            //         // the call has answered
-            //     });
-            //     rtcSession.on("confirmed", function () {
-            //         // this handler will be called for incoming calls too
-            //     });
-            //     rtcSession.on("ended", function () {
-            //         // the call has ended
-            //     });
-            //     rtcSession.on("failed", function () {
-            //         // unable to establish the call
-            //     });
-            //     rtcSession.on("addstream", function (e) {
-            //         // set remote audio stream (to listen to remote audio)
-            //         // remoteAudio is <audio> element on page
-            //         remoteAudio.src = window.URL.createObjectURL(e.stream);
-            //         remoteAudio.play();
-            //     });
-            //
-            //     // Answer call
-            //     rtcSession.answer({
-            //         mediaConstraints: {
-            //             audio: true,
-            //             video: false
-            //         },
-            //         pcConfig: {
-            //             iceServers: iceServers
-            //         }
-            //     });
-            //
-            //     // Reject call (or hang up it)
-            //     rtcSession.terminate();
-            // }
+            setRtcRequest(rtcRequest);
+            setOriginator(originator);
 
             // identify call direction
             if (originator === "local") {
@@ -213,104 +188,50 @@ export const JsSipProvider = ({ children }) => {
                 const delimiterPosition = foundUri.indexOf(";") || null;
 
                 setCallDirection(CALL_DIRECTION_OUTGOING);
-                setCallStatus(CALL_STATUS_STARTING);
-                setCallCounterpart(foundUri.substring(0, delimiterPosition) || foundUri);
+                dispatch(handleSetCallDirection("OUTGOING"));
+                // setCallStatus(CALL_STATUS_STARTING);
+                // setCallCounterpart(foundUri.substring(0, delimiterPosition) || foundUri);
             } else if (originator === "remote") {
                 const foundUri = rtcRequest.from.toString();
                 const delimiterPosition = foundUri.indexOf(";") || null;
 
-                setCallDirection(CALL_DIRECTION_INCOMING);
-                setCallStatus(CALL_STATUS_STARTING);
+                // setCallDirection(CALL_DIRECTION_INCOMING);
+                dispatch(handleSetCallDirection("INCOMING"));
+                // setCallStatus(CALL_STATUS_STARTING);
                 setCallCounterpart(foundUri.substring(0, delimiterPosition) || foundUri);
             }
-            //
-            //     const { rtcSession: rtcSessionInState } = this.state;
-            //
-            //     // Avoid if busy or other incoming
-            //     if (rtcSessionInState) {
-            //         this.logger.debug('incoming call replied with 486 "Busy Here"');
-            //         rtcSession.terminate({
-            //             status_code: 486,
-            //             reason_phrase: "Busy Here"
-            //         });
-            //         return;
-            //     }
-            //
-            //     this.setState({ rtcSession });
-            // rtcSession.on("failed", () => {
-            //     if (ua !== ua) {
-            //         return;
-            //     }
-            //
-            //     setRtcSession(null);
-            //     setCallStatus(CALL_STATUS_IDLE);
-            //     setCallDirection(null);
-            //     setCallCounterpart(null);
-            // });
-            //
-            // rtcSession.on("ended", () => {
-            //     if (ua !== ua) {
-            //         return;
-            //     }
-            //
-            //     setRtcSession(null);
-            //     setCallStatus(CALL_STATUS_IDLE);
-            //     setCallDirection(null);
-            //     setCallCounterpart(null);
-            // });
-            //
-            // rtcSession.on("accepted", () => {
-            //     if (ua !== ua) {
-            //         return;
-            //     }
-            //
-            //     [remoteAudio.srcObject] = rtcSession.connection.getRemoteStreams();
-            //     // const played = this.remoteAudio.play();
-            //     const played = remoteAudio.play();
-            //
-            //     if (typeof played !== "undefined") {
-            //         played
-            //             .catch(() => {
-            //                 /**/
-            //             })
-            //             .then(() => {
-            //                 setTimeout(() => {
-            //                     remoteAudio.play();
-            //                 }, 2000);
-            //             });
-            //         setCallStatus(CALL_STATUS_ACTIVE);
-            //         return;
-            //     }
-            //
-            //     setTimeout(() => {
-            //         remoteAudio.play();
-            //     }, 2000);
-            //
-            //     setCallStatus(CALL_STATUS_ACTIVE);
-            // });
-
-            // if (callDirection === CALL_DIRECTION_INCOMING && autoAnswer) {
-            //     logger.log("Answer auto ON");
-            //     answerCall();
-            // } else if (callDirection === CALL_DIRECTION_INCOMING && !autoAnswer) {
-            //     logger.log("Answer auto OFF");
-            // } else if (callDirection === CALL_DIRECTION_OUTGOING) {
-            //     logger.log("OUTGOING call");
-            // }
         });
-
-        // end rtc session
-
-        // const extraHeadersRegister = extraHeaders.register || [];
-        // if (extraHeadersRegister.length) {
-        //     ua.registrator().setExtraHeaders(extraHeadersRegister);
-        // }
 
         ua.start();
     };
 
+    const eventHandlers = {
+        connecting: function (e) {
+            console.log("call is in progress", e);
+            dispatch(handleSetCallStatus("connecting"));
+        },
+        progress: function (e) {
+            console.log("call is in progress", e);
+            dispatch(handleSetCallStatus("progress"));
+        },
+        failed: function (e) {
+            console.log("call failed with cause: ", e);
+            dispatch(handleSetCallStatus("failed"));
+        },
+        ended: async function (e) {
+            console.log("call ended with cause: ", e);
+            dispatch(handleSetCallStatus("ended"));
+            // dispatch(handleSetInCall(false));
+            toast.info("cuộc goọi đã kết thúc");
+        },
+        confirmed: function (e) {
+            console.log("call confirmed", e);
+            dispatch(handleSetCallStatus("confirmed"));
+        }
+    };
+
     const options = {
-        // extraHeaders,
+        eventHandlers,
         mediaConstraints: { audio: true, video: false },
         rtcOfferConstraints: { iceRestart: true },
         pcConfig: {
@@ -320,7 +241,6 @@ export const JsSipProvider = ({ children }) => {
                 // { urls: "turn:example.com", username: "foo", credential: "1234" }
             ]
         }
-        // sessionTimersExpires
     };
 
     // start call
@@ -328,20 +248,6 @@ export const JsSipProvider = ({ children }) => {
         if (!destination) {
             throw new Error(`Destination must be defined (${destination} given)`);
         }
-        if (sipStatus !== SIP_STATUS_CONNECTED && sipStatus !== SIP_STATUS_REGISTERED) {
-            throw new Error(
-                `Calling startCall() is not allowed when sip status is ${this.state.sipStatus} (expected ${SIP_STATUS_CONNECTED} or ${SIP_STATUS_REGISTERED})`
-            );
-        }
-
-        if (callStatus !== CALL_STATUS_IDLE) {
-            throw new Error(
-                `Calling startCall() is not allowed when call status is ${callStatus} (expected ${CALL_STATUS_IDLE})`
-            );
-        }
-
-        // const { iceServers, sessionTimersExpires } = this.props;
-        // const extraHeaders = extraHeaders.invite;
 
         UA.call(destination, options);
 
@@ -351,34 +257,14 @@ export const JsSipProvider = ({ children }) => {
 
     // answerCall
     const answerCall = () => {
-        if (callStatus !== CALL_STATUS_STARTING || callDirection !== CALL_DIRECTION_INCOMING) {
-            throw new Error(
-                `Calling answerCall() is not allowed when call status is ${callStatus} and call direction is ${callDirection}  (expected ${CALL_STATUS_STARTING} and ${CALL_DIRECTION_INCOMING})`
-            );
-        }
-
         rtcSession.answer(options);
-
-        // rtcSession.answer({
-        //     mediaConstraints: {
-        //         audio: true,
-        //         video: false
-        //     },
-        //     pcConfig: {
-        //         iceServers: [
-        //             // optional
-        //             { urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19305"] }
-        //             // { urls: "turn:example.com", username: "foo", credential: "1234" }
-        //         ]
-        //     }
-        // });
     };
     // end answerCall
 
     // stop call
     const stopCall = () => {
-        setCallStatus(CALL_STATUS_STOPPING);
         UA.terminateSessions();
+        dispatch(handleSetCallStatus("stop"));
     };
     // end stop call
 
@@ -406,7 +292,9 @@ export const JsSipProvider = ({ children }) => {
                 stopCall,
                 answerCall,
                 remoteAudio,
-                rtcSession
+                rtcSession,
+                rtcRequest,
+                originator
             }}
         >
             {children}

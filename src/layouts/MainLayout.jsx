@@ -39,12 +39,10 @@ const MainLayout = () => {
                 </ScrollArea>
 
                 <ScrollArea
-                    // offsetScrollbars
                     scrollbarSize={8}
                     scrollbars='y'
                     type='auto'
                     w={"100%"}
-                    // px={10}
                     style={{
                         height: `calc(100vh - 60px)`
                     }}

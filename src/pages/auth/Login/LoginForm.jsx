@@ -43,8 +43,8 @@ const LoginForm = () => {
                 return navigate(location.state?.from ? location.state?.from : "/");
             })
             .catch((err) => {
-                // handle result here
                 console.log("err", err);
+                toast.error(err.message);
                 setLoading(false);
             });
     };

@@ -4,7 +4,9 @@ const initialState = {
     sipStatus: null,
     wsStatus: null,
     callStatus: null,
-    callDirection: null
+    sipNumber: null,
+    callDirection: null,
+    inCall: false
 };
 
 export const jsSipSlice = createSlice({
@@ -16,11 +18,26 @@ export const jsSipSlice = createSlice({
         },
         handleSetWsStatus: (state, action) => {
             state.wsStatus = action.payload;
+        },
+        handleSetInCall: (state, action) => {
+            console.log("action.payload", action.payload);
+            state.inCall = action.payload;
+        },
+        handleSetCallStatus: (state, action) => {
+            state.callStatus = action.payload;
+        },
+        handleSetCallDirection: (state, action) => {
+            state.callDirection = action.payload;
         }
     }
 });
 
-// Action creators are generated for each case reducer function
-export const { handleSetSipStatus, handleSetWsStatus } = jsSipSlice.actions;
+export const {
+    handleSetSipStatus,
+    handleSetWsStatus,
+    handleSetInCall,
+    handleSetCallStatus,
+    handleSetCallDirection
+} = jsSipSlice.actions;
 
 export default jsSipSlice.reducer;

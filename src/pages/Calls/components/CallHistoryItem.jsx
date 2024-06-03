@@ -21,7 +21,7 @@ const CallHistoryItem = () => {
                 ref={ref}
                 w={"100%"}
                 px={20}
-                h={66}
+                h={76}
                 align={"center"}
                 justify={"space-between"}
                 style={{
