@@ -9,11 +9,14 @@ import {
     IconPhoneOutgoing
 } from "@tabler/icons-react";
 import Sidebar from "../../../components/Sidebar";
+import { fancyTimeFormat } from "../../../lib/utils/dateTimeFunction";
 
-const CallHistoryItem = () => {
+const CallHistoryItem = ({ item }) => {
     const theme = useMantineTheme();
     const [openNoteHistory, setOpenHistory] = useState(false);
     const { hovered, ref } = useHover();
+
+    console.log(item);
 
     return (
         <Flex w={"100%"} direction={"column"}>
@@ -60,7 +63,7 @@ const CallHistoryItem = () => {
                         onClick={() => setOpenHistory(!openNoteHistory)}
                     >
                         <Text fz={13} c={theme.colors.gray[7]} fw={500}>
-                            0934072724 - tên khách hàng
+                            {item?.destination} - tên khách hàng
                         </Text>
 
                         <Flex fz={10}>
@@ -73,11 +76,17 @@ const CallHistoryItem = () => {
                                     borderRight: `1px solid ${theme.colors.gray[5]}`
                                 }}
                             >
-                                2024-05-31 17:38:01
+                                {item?.calldate}
                             </Text>
 
                             <Text
-                                c={theme.colors.gray[5]}
+                                c={
+                                    item?.calltype === "3"
+                                        ? theme.colors.green[5]
+                                        : item?.calltype === "2"
+                                          ? theme.colors.indigo[5]
+                                          : theme.colors.red[5]
+                                }
                                 fz={13}
                                 pr={10}
                                 mr={10}
@@ -85,11 +94,23 @@ const CallHistoryItem = () => {
                                     borderRight: `1px solid ${theme.colors.gray[5]}`
                                 }}
                             >
-                                OUTGOING
+                                {item?.calltype === "3"
+                                    ? "OUTGOING"
+                                    : item?.calltype === "2"
+                                      ? "INCOMING"
+                                      : item?.calltype === "1" || item?.calltype === "4"
+                                        ? "INTERNAL"
+                                        : "FAILED"}
                             </Text>
 
                             <Text
-                                c={theme.colors.gray[5]}
+                                c={
+                                    item?.disposition === "ANSWERED"
+                                        ? theme.colors.green[5]
+                                        : item?.disposition === "NO ANSWER"
+                                          ? theme.colors.orange[5]
+                                          : theme.colors.red[5]
+                                }
                                 fz={13}
                                 pr={10}
                                 mr={10}
@@ -97,11 +118,11 @@ const CallHistoryItem = () => {
                                     borderRight: `1px solid ${theme.colors.gray[5]}`
                                 }}
                             >
-                                ANSWERED
+                                {item?.disposition}
                             </Text>
 
                             <Text c={theme.colors.gray[5]} fz={13}>
-                                duration: 00:17
+                                duration: {fancyTimeFormat(item?.billsec)}
                             </Text>
                         </Flex>
                     </Flex>

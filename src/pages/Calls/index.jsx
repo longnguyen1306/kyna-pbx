@@ -8,9 +8,10 @@ import {
     Button,
     ScrollArea,
     Radio,
-    Group
+    Group,
+    Loader
 } from "@mantine/core";
-import { IconHistory, IconPhone, IconArrowLeft } from "@tabler/icons-react";
+import { IconHistory, IconPhone, IconArrowLeft, IconAt } from "@tabler/icons-react";
 import { useDisclosure, useHover } from "@mantine/hooks";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -19,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleSetCallStatus, handleSetInCall } from "../../redux/slices/jsSipSlice";
 import InCall from "./components/InCall";
 import CallHistoryItem from "./components/CallHistoryItem";
+import cdrApis from "../../lib/api/cdrApis";
 
 const regexPhone = new RegExp("^[0-9]+$");
 
@@ -30,6 +32,9 @@ const CallPage = () => {
     const dispatch = useDispatch();
     const [opened, { toggle, close }] = useDisclosure(false);
     const [checkBoxFilterData, setCheckBoxFilterData] = useState("all");
+
+    const [loading, setLoading] = useState(false);
+    const [cdrData, setCdrData] = useState([]);
 
     const handleClickCall = () => {
         if (!regexPhone.test(phoneNumber) || phoneNumber.length <= 4) {
@@ -85,6 +90,23 @@ const CallPage = () => {
         answerCall();
     };
 
+    // cdr data
+
+    const getCdrData = async () => {
+        setLoading(true);
+        const res = await cdrApis.getCdrByUser();
+
+        if (res?.code === "error") {
+            return toast.error(res.message);
+        }
+        setCdrData(res?.data);
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        getCdrData();
+    }, []);
+
     return (
         <>
             <Flex>
@@ -111,29 +133,42 @@ const CallPage = () => {
                     </Flex>
 
                     <Flex h={"70%"} direction={"column"} justify={"space-between"}>
-                        <Input
-                            value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
-                            w='100%'
-                            size={"md"}
-                            placeholder='Nhập số điện thoại cần gọi...'
-                        />
+                        <Flex direction='column' align='center' gap={20}>
+                            <Input
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                w='100%'
+                                size={"md"}
+                                placeholder='Nhập số điện thoại cần gọi...'
+                            />
+
+                            <ActionIcon
+                                onClick={handleClickCall}
+                                variant='filled'
+                                color='indigo'
+                                size={50}
+                                radius='xl'
+                                aria-label='Settings'
+                            >
+                                <IconPhone style={{ width: "60%", height: "60%" }} stroke={1.5} />
+                            </ActionIcon>
+                        </Flex>
 
                         <Flex>ss</Flex>
 
                         <Flex mb={40} align='center' justify='space-between'>
                             <Flex></Flex>
 
-                            <ActionIcon
-                                onClick={handleClickCall}
-                                variant='filled'
-                                color='indigo'
-                                size={60}
-                                radius='xl'
-                                aria-label='Settings'
-                            >
-                                <IconPhone style={{ width: "60%", height: "60%" }} stroke={1.5} />
-                            </ActionIcon>
+                            {/*<ActionIcon*/}
+                            {/*    onClick={handleClickCall}*/}
+                            {/*    variant='filled'*/}
+                            {/*    color='indigo'*/}
+                            {/*    size={60}*/}
+                            {/*    radius='xl'*/}
+                            {/*    aria-label='Settings'*/}
+                            {/*>*/}
+                            {/*    <IconPhone style={{ width: "60%", height: "60%" }} stroke={1.5} />*/}
+                            {/*</ActionIcon>*/}
 
                             <Flex></Flex>
                         </Flex>
@@ -153,7 +188,13 @@ const CallPage = () => {
                                     </Flex>
 
                                     <Flex align={"center"} gap={10}>
-                                        <Text>123</Text>
+                                        <Text>
+                                            {loading ? (
+                                                <Loader color='indigo' type='dots' size={22} />
+                                            ) : (
+                                                cdrData?.length
+                                            )}
+                                        </Text>
                                         <Text>Cuộc gọi</Text>
                                     </Flex>
                                 </Flex>
@@ -216,6 +257,12 @@ const CallPage = () => {
 
                                     <Flex>
                                         <Input
+                                            leftSection={
+                                                loading ? (
+                                                    <Loader color='indigo' type='dots' size={22} />
+                                                ) : null
+                                            }
+                                            disabled={loading}
                                             size='md'
                                             radius='md'
                                             placeholder='Tìm số điện thoại...'
@@ -238,81 +285,21 @@ const CallPage = () => {
                                     borderRightStyle: "solid"
                                 }}
                             >
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
-                                <CallHistoryItem />
+                                {!loading ? (
+                                    <>
+                                        {cdrData.length > 0 ? (
+                                            cdrData?.map((item, index) => {
+                                                return <CallHistoryItem key={index} item={item} />;
+                                            })
+                                        ) : (
+                                            <Flex p={20}>Không có cuộc gọi nào</Flex>
+                                        )}
+                                    </>
+                                ) : (
+                                    <Flex align='center' justify='center' py={50}>
+                                        <Loader color='indigo' size='md' />
+                                    </Flex>
+                                )}
                             </ScrollArea>
                         </Flex>
                     )}
