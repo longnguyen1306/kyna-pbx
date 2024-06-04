@@ -21,6 +21,8 @@ import { handleSetCallStatus, handleSetInCall } from "../../redux/slices/jsSipSl
 import InCall from "./components/InCall";
 import CallHistoryItem from "./components/CallHistoryItem";
 import cdrApis from "../../lib/api/cdrApis";
+import styles from "../../assets/styles/Calls.module.scss";
+import callListApis from "../../lib/api/callListApis";
 
 const regexPhone = new RegExp("^[0-9]+$");
 
@@ -29,21 +31,52 @@ const CallPage = () => {
     const [phoneNumber, setPhoneNumber] = useState("");
     const { stopCall, rtcSession, answerCall, startCall } = useContext(JsSipContext);
     const { inCall } = useSelector((state) => state.jsSip);
+    const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const [opened, { toggle, close }] = useDisclosure(false);
     const [checkBoxFilterData, setCheckBoxFilterData] = useState("all");
 
     const [loading, setLoading] = useState(false);
     const [cdrData, setCdrData] = useState([]);
+    const [inCallData, setInCallData] = useState(null);
 
-    const handleClickCall = () => {
+    const handleClickCall = async () => {
         if (!regexPhone.test(phoneNumber) || phoneNumber.length <= 4) {
             return toast.error("Số điện thoại không hợp lệ");
         }
         dispatch(handleSetInCall(true));
 
-        startCall(phoneNumber);
+        const call = await callListApis.getCallByPhone(phoneNumber);
+
+        if (call.code === "success") {
+            setInCallData(call?.data);
+            startCall(phoneNumber);
+            return;
+        } else if (call.code === "not_found") {
+            const data = {
+                name: "",
+                phoneNumber,
+                agent: {
+                    name: user?.user?.name,
+                    email: user?.user?.email
+                },
+                accountCode: user?.user?.sipNumber
+            };
+
+            const newCall = await callListApis.makeNewCall(data);
+
+            if (newCall?.code === "success") {
+                setInCallData(newCall?.data);
+                startCall(phoneNumber);
+                return;
+            }
+
+            toast.error("Tạo cuộc gọi lỗi...");
+        }
     };
+
+    console.log("rtcSession", rtcSession);
+    // console.log("user", user.user);
 
     useEffect(() => {
         if (rtcSession && rtcSession?.direction === "outgoing") {
@@ -94,7 +127,9 @@ const CallPage = () => {
 
     const getCdrData = async () => {
         setLoading(true);
-        const res = await cdrApis.getCdrByUser();
+        const res = await callListApis.getCallByUser();
+
+        if (!res) return toast.error("Lỗi");
 
         if (res?.code === "error") {
             return toast.error(res.message);
@@ -105,44 +140,28 @@ const CallPage = () => {
 
     useEffect(() => {
         getCdrData();
-    }, []);
+    }, [inCall]);
 
     return (
         <>
-            <Flex>
-                <Flex
-                    direction='column'
-                    justify='space-between'
-                    w={360}
-                    bg={theme.colors.gray[0]}
-                    style={{
-                        height: "calc(100vh - 60px)"
-                    }}
-                >
-                    <Flex
-                        bg='white'
-                        gap={8}
-                        py={16}
-                        px={16}
-                        style={{
-                            cursor: "pointer"
-                        }}
-                        onClick={() => dispatch(handleSetInCall(false))}
-                    >
+            <Flex className={styles.wrapper}>
+                <Flex direction='column' justify='space-between' className={styles.callArea}>
+                    <Flex className={styles.linkNav} onClick={() => dispatch(handleSetInCall(false))}>
                         <IconHistory /> Lịch sử cuộc gọi
                     </Flex>
 
-                    <Flex h={"70%"} direction={"column"} justify={"space-between"}>
+                    <Flex h={"70%"} direction='column' justify={"space-between"} className={styles.calls}>
                         <Flex direction='column' align='center' gap={20}>
                             <Input
+                                className={styles.callInput}
                                 value={phoneNumber}
                                 onChange={(e) => setPhoneNumber(e.target.value)}
-                                w='100%'
                                 size={"md"}
                                 placeholder='Nhập số điện thoại cần gọi...'
                             />
 
                             <ActionIcon
+                                className={styles.callBtn}
                                 onClick={handleClickCall}
                                 variant='filled'
                                 color='indigo'
@@ -175,7 +194,7 @@ const CallPage = () => {
                     </Flex>
                 </Flex>
 
-                <Flex w={"100%"}>
+                <Flex className={styles.callHistory}>
                     {inCall ? (
                         <InCall phoneNumber={phoneNumber} />
                     ) : (
@@ -218,39 +237,6 @@ const CallPage = () => {
                                                         }
                                                     }}
                                                 />
-                                                <Radio
-                                                    color='indigo'
-                                                    value='noAnswer'
-                                                    label='no answer'
-                                                    styles={{
-                                                        label: {
-                                                            cursor: "pointer",
-                                                            textTransform: "uppercase"
-                                                        }
-                                                    }}
-                                                />
-                                                <Radio
-                                                    color='indigo'
-                                                    value='answered'
-                                                    label='answered'
-                                                    styles={{
-                                                        label: {
-                                                            cursor: "pointer",
-                                                            textTransform: "uppercase"
-                                                        }
-                                                    }}
-                                                />
-                                                <Radio
-                                                    color='indigo'
-                                                    value='failed'
-                                                    label='failed'
-                                                    styles={{
-                                                        label: {
-                                                            cursor: "pointer",
-                                                            textTransform: "uppercase"
-                                                        }
-                                                    }}
-                                                />
                                             </Group>
                                         </Radio.Group>
                                     </Flex>
@@ -273,7 +259,6 @@ const CallPage = () => {
                             </Flex>
 
                             <ScrollArea
-                                // offsetScrollbars
                                 scrollbarSize={8}
                                 scrollbars='y'
                                 type='auto'
@@ -287,7 +272,7 @@ const CallPage = () => {
                             >
                                 {!loading ? (
                                     <>
-                                        {cdrData.length > 0 ? (
+                                        {cdrData?.length > 0 ? (
                                             cdrData?.map((item, index) => {
                                                 return <CallHistoryItem key={index} item={item} />;
                                             })

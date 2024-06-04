@@ -6,7 +6,7 @@ const getCdrByUser = async () => {
     try {
         const startTime = moment(Date.now()).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).unix();
         const endTime = moment(Date.now()).set({ hour: 23, minute: 59, second: 59, millisecond: 0 }).unix();
-        const accessToken = getToken.getAccessToken()?.accessToken;
+        const accessToken = getToken.getAccessToken();
 
         const data = await axiosCustom.get(
             `/cdrs/get-cdr-by-user?startTime=${startTime}&endTime=${endTime}`,
@@ -19,7 +19,7 @@ const getCdrByUser = async () => {
 
         return data.data;
     } catch (err) {
-        return err.response.data;
+        return err.response?.data;
     }
 };
 
