@@ -6,7 +6,7 @@ import moment from "moment";
 import CallDetail from "./CallDetail";
 import CallNoteList from "./CallNoteList";
 
-const CallHistoryItem = ({ item }) => {
+const CallHistoryItem = ({ item, handleClickCall }) => {
     const theme = useMantineTheme();
     const [openNoteHistory, setOpenHistory] = useState(false);
     const { hovered, ref } = useHover();
@@ -117,6 +117,7 @@ const CallHistoryItem = ({ item }) => {
                     </ActionIcon>
 
                     <ActionIcon
+                        onClick={() => handleClickCall(item.phoneNumber)}
                         data-tooltip-id='app-tooltip'
                         data-tooltip-content='Gọi lại số này!'
                         variant='subtle'
@@ -155,9 +156,11 @@ const CallHistoryItem = ({ item }) => {
                             }}
                         >
                             <Flex direction='column'>
-                                <CallNoteList item={item} />
-                                <CallNoteList item={item} />
-                                <CallNoteList item={item} />
+                                {item?.noteList?.length > 0
+                                    ? item?.noteList?.map((itemCall, index) => (
+                                          <CallNoteList key={index} item={itemCall} call={item} />
+                                      ))
+                                    : "null"}
                             </Flex>
                         </ScrollArea>
 

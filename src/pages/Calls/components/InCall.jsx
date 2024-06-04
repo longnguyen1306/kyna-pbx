@@ -4,13 +4,15 @@ import JsSipContext from "../../../providers/sips/JsSipProvider";
 import { useSelector } from "react-redux";
 import { fancyTimeFormat } from "../../../lib/utils/dateTimeFunction";
 
-const InCall = () => {
+const InCall = ({ inCallData }) => {
     const theme = useMantineTheme();
     const { stopCall, rtcSession } = useContext(JsSipContext);
     const { callStatus, callDirection } = useSelector((state) => state.jsSip);
     const [time, setTime] = useState(0);
     const [displayName, setDisplayName] = useState(null);
     const [callPhoneNumber, setCallPhoneNumber] = useState(null);
+
+    console.log("inCallData", inCallData);
 
     useEffect(() => {
         let idTime;

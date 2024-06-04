@@ -11,8 +11,8 @@ import {
     Group,
     Loader
 } from "@mantine/core";
-import { IconHistory, IconPhone, IconArrowLeft, IconAt } from "@tabler/icons-react";
-import { useDisclosure, useHover } from "@mantine/hooks";
+import { IconHistory, IconPhone, IconArrowLeft } from "@tabler/icons-react";
+import { useDisclosure } from "@mantine/hooks";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import JsSipContext from "../../providers/sips/JsSipProvider";
@@ -20,7 +20,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { handleSetCallStatus, handleSetInCall } from "../../redux/slices/jsSipSlice";
 import InCall from "./components/InCall";
 import CallHistoryItem from "./components/CallHistoryItem";
-import cdrApis from "../../lib/api/cdrApis";
 import styles from "../../assets/styles/Calls.module.scss";
 import callListApis from "../../lib/api/callListApis";
 
@@ -40,22 +39,15 @@ const CallPage = () => {
     const [cdrData, setCdrData] = useState([]);
     const [inCallData, setInCallData] = useState(null);
 
-    const handleClickCall = async () => {
-        if (!regexPhone.test(phoneNumber) || phoneNumber.length <= 4) {
-            return toast.error("Số điện thoại không hợp lệ");
-        }
-        dispatch(handleSetInCall(true));
-
-        const call = await callListApis.getCallByPhone(phoneNumber);
+    const checkInCallData = async (number) => {
+        const call = await callListApis.getCallByPhone(number);
 
         if (call.code === "success") {
             setInCallData(call?.data);
-            startCall(phoneNumber);
-            return;
         } else if (call.code === "not_found") {
             const data = {
-                name: "",
-                phoneNumber,
+                name: number,
+                phoneNumber: number,
                 agent: {
                     name: user?.user?.name,
                     email: user?.user?.email
@@ -64,19 +56,29 @@ const CallPage = () => {
             };
 
             const newCall = await callListApis.makeNewCall(data);
-
             if (newCall?.code === "success") {
                 setInCallData(newCall?.data);
-                startCall(phoneNumber);
-                return;
             }
-
-            toast.error("Tạo cuộc gọi lỗi...");
         }
     };
 
-    console.log("rtcSession", rtcSession);
-    // console.log("user", user.user);
+    const handleClickCall = async (phone) => {
+        if (phone) {
+            dispatch(handleSetInCall(true));
+            checkInCallData(phone).then(() => {
+                startCall(phone);
+            });
+        } else {
+            if (!regexPhone.test(phoneNumber) || phoneNumber.length <= 4) {
+                return toast.error("Số điện thoại không hợp lệ");
+            }
+            dispatch(handleSetInCall(true));
+
+            checkInCallData(phoneNumber).then(() => {
+                startCall(phoneNumber);
+            });
+        }
+    };
 
     useEffect(() => {
         if (rtcSession && rtcSession?.direction === "outgoing") {
@@ -88,6 +90,8 @@ const CallPage = () => {
         }
 
         if (rtcSession && rtcSession?.direction === "incoming") {
+            checkInCallData(rtcSession?.remote_identity?.uri.user);
+
             toggle();
             rtcSession.on("peerconnection", function (data) {
                 data.peerconnection.addEventListener("addstream", function (e) {
@@ -124,7 +128,6 @@ const CallPage = () => {
     };
 
     // cdr data
-
     const getCdrData = async () => {
         setLoading(true);
         const res = await callListApis.getCallByUser();
@@ -196,7 +199,7 @@ const CallPage = () => {
 
                 <Flex className={styles.callHistory}>
                     {inCall ? (
-                        <InCall phoneNumber={phoneNumber} />
+                        <InCall phoneNumber={phoneNumber} inCallData={inCallData} />
                     ) : (
                         <Flex direction='column' w={"100%"} px={30} gap={20}>
                             <Flex direction='column' justify='space-between' h={100}>
@@ -274,7 +277,13 @@ const CallPage = () => {
                                     <>
                                         {cdrData?.length > 0 ? (
                                             cdrData?.map((item, index) => {
-                                                return <CallHistoryItem key={index} item={item} />;
+                                                return (
+                                                    <CallHistoryItem
+                                                        key={index}
+                                                        item={item}
+                                                        handleClickCall={handleClickCall}
+                                                    />
+                                                );
                                             })
                                         ) : (
                                             <Flex p={20}>Không có cuộc gọi nào</Flex>
@@ -306,11 +315,11 @@ const CallPage = () => {
                 </Text>
 
                 <Text size='md' fw={500} py={6} c={theme.colors.indigo[6]}>
-                    {rtcSession?.remote_identity.display_name}
+                    {inCallData?.name}
                 </Text>
 
                 <Text size='md' fw={500} py={6} c={theme.colors.indigo[6]}>
-                    {rtcSession?.remote_identity?.uri.user}
+                    {inCallData?.phoneNumber}
                 </Text>
 
                 <Flex align='center' justify='space-between' py={10}>

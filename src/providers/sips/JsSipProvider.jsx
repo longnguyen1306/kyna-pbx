@@ -41,7 +41,7 @@ export const JsSipProvider = ({ children }) => {
     let ua;
     let remoteAudio;
 
-    // JsSIP.debug.disable("JsSIP:*");
+    JsSIP.debug.disable("JsSIP:*");
 
     const reinitializeJsSIP = async (userData) => {
         if (ua) {
