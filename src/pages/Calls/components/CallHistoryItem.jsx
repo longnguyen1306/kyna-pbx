@@ -1,10 +1,12 @@
-import { ActionIcon, Flex, ScrollArea, Text, useMantineTheme } from "@mantine/core";
+import { ActionIcon, Button, Flex, ScrollArea, Text, TextInput, useMantineTheme } from "@mantine/core";
 import { useState } from "react";
 import { useHover } from "@mantine/hooks";
 import { IconNote, IconPhoneOutgoing } from "@tabler/icons-react";
 import moment from "moment";
 import CallDetail from "./CallDetail";
 import CallNoteList from "./CallNoteList";
+import { modals } from "@mantine/modals";
+import BtnAddNote from "./BtnAddNote";
 
 const CallHistoryItem = ({ item, handleClickCall }) => {
     const theme = useMantineTheme();
@@ -104,17 +106,7 @@ const CallHistoryItem = ({ item, handleClickCall }) => {
                 </Flex>
 
                 <Flex align={"center"} gap={10}>
-                    <ActionIcon
-                        data-tooltip-id='app-tooltip'
-                        data-tooltip-content='Ghi chú cho cuộc gọi này!'
-                        variant='subtle'
-                        color={theme.colors.gray[5]}
-                        size='xl'
-                        radius='xl'
-                        aria-label='Settings'
-                    >
-                        <IconNote style={{ width: "50%", height: "50%" }} stroke={1.5} />
-                    </ActionIcon>
+                    <BtnAddNote item={item} />
 
                     <ActionIcon
                         onClick={() => handleClickCall(item.phoneNumber)}

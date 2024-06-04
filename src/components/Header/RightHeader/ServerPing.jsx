@@ -15,7 +15,7 @@ const ServerPing = () => {
                     console.error(err);
                 }
             });
-        }, 1000);
+        }, 5000);
 
         return () => clearInterval(pingID);
     }, []);
