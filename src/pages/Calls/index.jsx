@@ -1,17 +1,5 @@
-import {
-    Flex,
-    useMantineTheme,
-    Text,
-    Input,
-    ActionIcon,
-    Dialog,
-    Button,
-    ScrollArea,
-    Radio,
-    Group,
-    Loader
-} from "@mantine/core";
-import { IconHistory, IconPhone, IconArrowLeft } from "@tabler/icons-react";
+import { Flex, useMantineTheme, Text, Dialog, Button, ScrollArea, Loader } from "@mantine/core";
+import { IconHistory } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -22,6 +10,8 @@ import InCall from "./components/InCall";
 import CallHistoryItem from "./components/CallHistoryItem";
 import styles from "../../assets/styles/Calls.module.scss";
 import callListApis from "../../lib/api/callListApis";
+import CallPanel from "./components/CallPanel";
+import PageToolBar from "./components/PageToolBar";
 
 const regexPhone = new RegExp("^[0-9]+$");
 
@@ -33,17 +23,21 @@ const CallPage = () => {
     const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
     const [opened, { toggle, close }] = useDisclosure(false);
-    const [checkBoxFilterData, setCheckBoxFilterData] = useState("all");
 
     const [loading, setLoading] = useState(false);
     const [cdrData, setCdrData] = useState([]);
     const [inCallData, setInCallData] = useState(null);
+    const [callHistory, setCallHistory] = useState(null);
+
+    const [activePage, setPage] = useState(1);
 
     const checkInCallData = async (number) => {
         const call = await callListApis.getCallByPhone(number);
 
         if (call.code === "success") {
-            setInCallData(call?.data);
+            await callListApis.updateCall(number).then((c) => {
+                setInCallData(call?.data);
+            });
         } else if (call.code === "not_found") {
             const data = {
                 name: number,
@@ -130,7 +124,7 @@ const CallPage = () => {
     // cdr data
     const getCdrData = async () => {
         setLoading(true);
-        const res = await callListApis.getCallByUser();
+        const res = await callListApis.getCallByUser(activePage);
 
         if (!res) return toast.error("Lỗi");
 
@@ -143,57 +137,26 @@ const CallPage = () => {
 
     useEffect(() => {
         getCdrData();
-    }, [inCall]);
+    }, [inCall, activePage]);
 
     return (
         <>
             <Flex className={styles.wrapper}>
                 <Flex direction='column' justify='space-between' className={styles.callArea}>
-                    <Flex className={styles.linkNav} onClick={() => dispatch(handleSetInCall(false))}>
+                    <Flex
+                        className={styles.linkNav}
+                        onClick={() => dispatch(handleSetInCall(false))}
+                        gap={10}
+                    >
                         <IconHistory /> Lịch sử cuộc gọi
                     </Flex>
 
                     <Flex h={"70%"} direction='column' justify={"space-between"} className={styles.calls}>
-                        <Flex direction='column' align='center' gap={20}>
-                            <Input
-                                className={styles.callInput}
-                                value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                size={"md"}
-                                placeholder='Nhập số điện thoại cần gọi...'
-                            />
-
-                            <ActionIcon
-                                className={styles.callBtn}
-                                onClick={handleClickCall}
-                                variant='filled'
-                                color='indigo'
-                                size={50}
-                                radius='xl'
-                                aria-label='Settings'
-                            >
-                                <IconPhone style={{ width: "60%", height: "60%" }} stroke={1.5} />
-                            </ActionIcon>
-                        </Flex>
-
-                        <Flex>ss</Flex>
-
-                        <Flex mb={40} align='center' justify='space-between'>
-                            <Flex></Flex>
-
-                            {/*<ActionIcon*/}
-                            {/*    onClick={handleClickCall}*/}
-                            {/*    variant='filled'*/}
-                            {/*    color='indigo'*/}
-                            {/*    size={60}*/}
-                            {/*    radius='xl'*/}
-                            {/*    aria-label='Settings'*/}
-                            {/*>*/}
-                            {/*    <IconPhone style={{ width: "60%", height: "60%" }} stroke={1.5} />*/}
-                            {/*</ActionIcon>*/}
-
-                            <Flex></Flex>
-                        </Flex>
+                        <CallPanel
+                            phoneNumber={phoneNumber}
+                            handleClickCall={handleClickCall}
+                            setPhoneNumber={setPhoneNumber}
+                        />
                     </Flex>
                 </Flex>
 
@@ -202,64 +165,12 @@ const CallPage = () => {
                         <InCall phoneNumber={phoneNumber} inCallData={inCallData} />
                     ) : (
                         <Flex direction='column' w={"100%"} px={30} gap={20}>
-                            <Flex direction='column' justify='space-between' h={100}>
-                                <Flex h={"50%"} align={"center"} justify='space-between'>
-                                    <Flex align={"center"} gap={10}>
-                                        <IconArrowLeft size={18} />
-                                        <Text>Lịch sử cuộc gọi hôm nay</Text>
-                                    </Flex>
-
-                                    <Flex align={"center"} gap={10}>
-                                        <Text>
-                                            {loading ? (
-                                                <Loader color='indigo' type='dots' size={22} />
-                                            ) : (
-                                                cdrData?.length
-                                            )}
-                                        </Text>
-                                        <Text>Cuộc gọi</Text>
-                                    </Flex>
-                                </Flex>
-
-                                <Flex h={"50%"} align={"center"} justify={"space-between"}>
-                                    <Flex>
-                                        <Radio.Group
-                                            name='favoriteFramework'
-                                            value={checkBoxFilterData}
-                                            onChange={setCheckBoxFilterData}
-                                        >
-                                            <Group mt='xs'>
-                                                <Radio
-                                                    color='indigo'
-                                                    value='all'
-                                                    label='All'
-                                                    styles={{
-                                                        label: {
-                                                            cursor: "pointer",
-                                                            textTransform: "uppercase"
-                                                        }
-                                                    }}
-                                                />
-                                            </Group>
-                                        </Radio.Group>
-                                    </Flex>
-
-                                    <Flex>
-                                        <Input
-                                            leftSection={
-                                                loading ? (
-                                                    <Loader color='indigo' type='dots' size={22} />
-                                                ) : null
-                                            }
-                                            disabled={loading}
-                                            size='md'
-                                            radius='md'
-                                            placeholder='Tìm số điện thoại...'
-                                            w={300}
-                                        />
-                                    </Flex>
-                                </Flex>
-                            </Flex>
+                            <PageToolBar
+                                cdrData={cdrData}
+                                setPage={setPage}
+                                activePage={activePage}
+                                loading={loading}
+                            />
 
                             <ScrollArea
                                 scrollbarSize={8}
@@ -275,8 +186,8 @@ const CallPage = () => {
                             >
                                 {!loading ? (
                                     <>
-                                        {cdrData?.length > 0 ? (
-                                            cdrData?.map((item, index) => {
+                                        {cdrData?.docs?.length > 0 ? (
+                                            cdrData?.docs?.map((item, index) => {
                                                 return (
                                                     <CallHistoryItem
                                                         key={index}

@@ -1,17 +1,35 @@
-import { ActionIcon, Button, Flex, ScrollArea, Text, TextInput, useMantineTheme } from "@mantine/core";
-import { useState } from "react";
+import { ActionIcon, Flex, ScrollArea, Text, useMantineTheme } from "@mantine/core";
+import { useEffect, useState } from "react";
 import { useHover } from "@mantine/hooks";
-import { IconNote, IconPhoneOutgoing } from "@tabler/icons-react";
+import { IconPhoneOutgoing } from "@tabler/icons-react";
 import moment from "moment";
 import CallDetail from "./CallDetail";
 import CallNoteList from "./CallNoteList";
-import { modals } from "@mantine/modals";
 import BtnAddNote from "./BtnAddNote";
+import cdrApis from "../../../lib/api/cdrApis";
 
 const CallHistoryItem = ({ item, handleClickCall }) => {
     const theme = useMantineTheme();
     const [openNoteHistory, setOpenHistory] = useState(false);
     const { hovered, ref } = useHover();
+    const [callHistory, setCallHistory] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const getCdrByPhoneNumber = async () => {
+        setLoading(true);
+
+        const res = await cdrApis.getCdrsByPhone(item.phoneNumber);
+
+        setCallHistory(res.data);
+
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        if (openNoteHistory) {
+            getCdrByPhoneNumber();
+        }
+    }, [openNoteHistory]);
 
     return (
         <Flex w={"100%"} direction={"column"}>
@@ -168,11 +186,17 @@ const CallHistoryItem = ({ item, handleClickCall }) => {
                             }}
                         >
                             <Flex direction='column'>
-                                {item?.callHistories?.length > 0
-                                    ? item?.callHistories?.map((itemCall, index) => (
-                                          <CallDetail key={index} item={itemCall} call={item} />
-                                      ))
-                                    : "null"}
+                                {loading ? (
+                                    <>Loading...</>
+                                ) : (
+                                    <>
+                                        {callHistory?.length > 0
+                                            ? callHistory?.map((itemCall, index) => (
+                                                  <CallDetail key={index} item={itemCall} call={item} />
+                                              ))
+                                            : "null"}
+                                    </>
+                                )}
                             </Flex>
                         </ScrollArea>
                     </Flex>

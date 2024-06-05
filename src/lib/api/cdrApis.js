@@ -22,5 +22,20 @@ const getCdrByUser = async () => {
         return err.response?.data;
     }
 };
+const getCdrsByPhone = async (phone) => {
+    try {
+        const accessToken = getToken.getAccessToken();
 
-export default { getCdrByUser };
+        const data = await axiosCustom.get(`/cdrs/get-cdr-by-phone?phone=${phone}`, {
+            headers: {
+                authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        return data.data;
+    } catch (err) {
+        return err.response?.data;
+    }
+};
+
+export default { getCdrByUser, getCdrsByPhone };

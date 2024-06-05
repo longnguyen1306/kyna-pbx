@@ -34,11 +34,11 @@ const makeNewCall = async (data) => {
     }
 };
 
-const getCallByUser = async () => {
+const getCallByUser = async (activePage) => {
     try {
         const accessToken = getToken.getAccessToken();
 
-        const res = await axiosCustom.get(`/call-list/get-calls-by-account-code`, {
+        const res = await axiosCustom.get(`/call-list/get-calls-by-account-code?page=${activePage}`, {
             headers: {
                 authorization: `Bearer ${accessToken}`
             }
@@ -50,4 +50,19 @@ const getCallByUser = async () => {
     }
 };
 
-export default { getCallByPhone, makeNewCall, getCallByUser };
+const updateCall = async (phone) => {
+    try {
+        const accessToken = getToken.getAccessToken();
+        const data = await axiosCustom.get(`/call-list/update-call/${phone}`, {
+            headers: {
+                authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        return data.data;
+    } catch (err) {
+        return err.response?.data;
+    }
+};
+
+export default { getCallByPhone, makeNewCall, getCallByUser, updateCall };

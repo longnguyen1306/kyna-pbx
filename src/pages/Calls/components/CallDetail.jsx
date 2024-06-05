@@ -1,11 +1,12 @@
-import { Flex, Text, useMantineTheme } from "@mantine/core";
+import { Button, Flex, Modal, Text, useMantineTheme } from "@mantine/core";
 import moment from "moment/moment";
 import { fancyTimeFormat } from "../../../lib/utils/dateTimeFunction";
+import ReactAudioPlayer from "react-audio-player";
+import { useDisclosure } from "@mantine/hooks";
 
 const CallDetail = ({ item, call }) => {
     const theme = useMantineTheme();
-
-    console.log("call", call);
+    const [opened, { open, close }] = useDisclosure(false);
 
     return (
         <Flex
@@ -39,7 +40,7 @@ const CallDetail = ({ item, call }) => {
                         fontStyle: "italic"
                     }}
                 >
-                    {moment(item?.timeCall).utcOffset(14).format("DD/MM/YYYY, HH:mm:ss")}
+                    {moment(item?.callDate).utcOffset(14).format("DD/MM/YYYY, HH:mm:ss")}
                 </Text>
             </Flex>
 
@@ -62,18 +63,18 @@ const CallDetail = ({ item, call }) => {
                     fz={14}
                     span
                     c={
-                        item?.calltype === "3"
+                        item?.callType === "3"
                             ? theme.colors.green[5]
-                            : item?.calltype === "2"
+                            : item?.callType === "2"
                               ? theme.colors.indigo[5]
                               : theme.colors.red[5]
                     }
                 >
-                    {item?.calltype === "3"
+                    {item?.callType === "3"
                         ? "OUTGOING"
-                        : item?.calltype === "2"
+                        : item?.callType === "2"
                           ? "INCOMING"
-                          : item?.calltype === "1" || item?.calltype === "4"
+                          : item?.callType === "1" || item?.callType === "4"
                             ? "INTERNAL"
                             : "FAILED"}
                 </Text>
@@ -113,19 +114,25 @@ const CallDetail = ({ item, call }) => {
             <Flex fz={14} gap={6}>
                 Thời gian đàm thoại:
                 <Text fz={14} span>
-                    {fancyTimeFormat(item?.billsec)}
+                    {fancyTimeFormat(item?.billSec)}
                 </Text>
             </Flex>
 
             <Flex fz={14} align={"center"} gap={10}>
                 Ghi âm:
-                {item?.recfile ? (
-                    <audio controls preload='auto'>
-                        <source
-                            src={`${import.meta.env.VITE_PBX_DOMAIN}${item?.recfile}`}
-                            type='audio/x-wav'
+                <Modal opened={opened} onClose={close} withCloseButton={false}>
+                    <Flex direction='column' gap={4} align={"center"}>
+                        <ReactAudioPlayer
+                            src={`${import.meta.env.VITE_PBX_DOMAIN}${item?.recFile}`}
+                            controls
+                            autoPlay
                         />
-                    </audio>
+                    </Flex>
+                </Modal>
+                {item?.recFile ? (
+                    <Button size='xs' color='indigo' onClick={open}>
+                        Nghe ghi âm
+                    </Button>
                 ) : (
                     <div>null</div>
                 )}
