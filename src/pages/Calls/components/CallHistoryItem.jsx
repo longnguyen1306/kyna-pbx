@@ -18,7 +18,7 @@ const CallHistoryItem = ({ item, handleClickCall }) => {
     const getCdrByPhoneNumber = async () => {
         setLoading(true);
 
-        const res = await cdrApis.getCdrsByPhone(item.phoneNumber);
+        const res = await cdrApis.getCdrsByPhone(item?.phoneNumber);
 
         setCallHistory(res.data);
 

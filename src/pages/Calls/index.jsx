@@ -27,7 +27,6 @@ const CallPage = () => {
     const [loading, setLoading] = useState(false);
     const [cdrData, setCdrData] = useState([]);
     const [inCallData, setInCallData] = useState(null);
-    const [callHistory, setCallHistory] = useState(null);
 
     const [activePage, setPage] = useState(1);
 
