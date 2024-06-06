@@ -53,7 +53,7 @@ const CallDetail = ({ item, call }) => {
                         fontStyle: "italic"
                     }}
                 >
-                    {call?.agent.email}
+                    {item?.callBy}
                 </Text>
             </Flex>
 
