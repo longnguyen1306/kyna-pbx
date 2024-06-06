@@ -38,7 +38,7 @@ const InCall = ({ inCallData }) => {
         const getCdrByPhoneNumber = async () => {
             setLoading(true);
 
-            const res = await cdrApis.getCdrsByPhone(inCallData.phoneNumber);
+            const res = await cdrApis.getCdrsByPhone(inCallData?.phoneNumber);
 
             setCallHistory(res.data);
 
