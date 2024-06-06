@@ -65,4 +65,27 @@ const updateCall = async (phone) => {
     }
 };
 
-export default { getCallByPhone, makeNewCall, getCallByUser, updateCall };
+const updateNoteByCall = async (id, name, note) => {
+    try {
+        const accessToken = getToken.getAccessToken();
+        const data = await axiosCustom.post(
+            `/call-list/update-note-by-call`,
+            {
+                id,
+                name,
+                note
+            },
+            {
+                headers: {
+                    authorization: `Bearer ${accessToken}`
+                }
+            }
+        );
+
+        return data.data;
+    } catch (err) {
+        return err.response?.data;
+    }
+};
+
+export default { getCallByPhone, makeNewCall, getCallByUser, updateCall, updateNoteByCall };

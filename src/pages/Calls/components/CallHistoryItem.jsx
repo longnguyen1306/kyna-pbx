@@ -8,7 +8,7 @@ import CallNoteList from "./CallNoteList";
 import BtnAddNote from "./BtnAddNote";
 import cdrApis from "../../../lib/api/cdrApis";
 
-const CallHistoryItem = ({ item, handleClickCall }) => {
+const CallHistoryItem = ({ item, handleClickCall, getCdrData }) => {
     const theme = useMantineTheme();
     const [openNoteHistory, setOpenHistory] = useState(false);
     const { hovered, ref } = useHover();
@@ -124,7 +124,7 @@ const CallHistoryItem = ({ item, handleClickCall }) => {
                 </Flex>
 
                 <Flex align={"center"} gap={10}>
-                    <BtnAddNote item={item} />
+                    <BtnAddNote item={item} getCdrData={getCdrData} />
 
                     <ActionIcon
                         onClick={() => handleClickCall(item.phoneNumber)}
@@ -146,7 +146,6 @@ const CallHistoryItem = ({ item, handleClickCall }) => {
                     scrollbarSize={8}
                     scrollbars='y'
                     type='auto'
-                    bg='white'
                     style={{
                         height: 700,
                         borderRightColor: theme.colors.gray[1],
@@ -158,16 +157,17 @@ const CallHistoryItem = ({ item, handleClickCall }) => {
                             scrollbarSize={8}
                             scrollbars='y'
                             type='auto'
-                            bg='white'
                             style={{
-                                width: "100%",
+                                width: "60%",
                                 height: 700,
-                                margin: "0 10px"
+                                margin: "0 30px",
+                                padding: "0 60px",
+                                backgroundColor: theme.colors.gray[0]
                             }}
                         >
                             <Flex direction='column'>
                                 {item?.noteList?.length > 0
-                                    ? item?.noteList?.map((itemCall, index) => (
+                                    ? item?.noteList.map((itemCall, index) => (
                                           <CallNoteList key={index} item={itemCall} call={item} />
                                       ))
                                     : "null"}
@@ -178,11 +178,12 @@ const CallHistoryItem = ({ item, handleClickCall }) => {
                             scrollbarSize={8}
                             scrollbars='y'
                             type='auto'
-                            bg='white'
                             style={{
-                                width: "100%",
+                                width: "60%",
                                 height: 700,
-                                margin: "0 10px"
+                                margin: "0 30px",
+                                padding: "0 60px",
+                                backgroundColor: theme.colors.gray[0]
                             }}
                         >
                             <Flex direction='column'>

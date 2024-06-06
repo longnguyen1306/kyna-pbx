@@ -12,6 +12,7 @@ import styles from "../../assets/styles/Calls.module.scss";
 import callListApis from "../../lib/api/callListApis";
 import CallPanel from "./components/CallPanel";
 import PageToolBar from "./components/PageToolBar";
+import callInAudioFile from "../../assets/audio/ringIncomingCall.mp3";
 
 const regexPhone = new RegExp("^[0-9]+$");
 
@@ -29,6 +30,7 @@ const CallPage = () => {
     const [inCallData, setInCallData] = useState(null);
 
     const [activePage, setPage] = useState(1);
+    const callInAudio = new Audio(callInAudioFile);
 
     const checkInCallData = async (number) => {
         const call = await callListApis.getCallByPhone(number);
@@ -85,7 +87,15 @@ const CallPage = () => {
         if (rtcSession && rtcSession?.direction === "incoming") {
             checkInCallData(rtcSession?.remote_identity?.uri.user);
 
-            toggle();
+            if (!rtcSession.isEnded()) {
+                toggle();
+            }
+
+            if (rtcSession?.isInProgress()) {
+                callInAudio.loop = true;
+                callInAudio.play();
+            }
+
             rtcSession.on("peerconnection", function (data) {
                 data.peerconnection.addEventListener("addstream", function (e) {
                     const audio = document.createElement("audio");
@@ -93,21 +103,33 @@ const CallPage = () => {
                     audio.play();
                 });
             });
+            rtcSession.on("connecting", function (e) {
+                console.log("call is in connecting", e);
+                dispatch(handleSetCallStatus("connecting"));
+            });
             rtcSession.on("progress", function (e) {
                 console.log("call is in progress", e);
                 dispatch(handleSetCallStatus("progress"));
             });
             rtcSession.on("failed", function (e) {
+                callInAudio.loop = false;
+                callInAudio.pause();
+                getCdrData();
                 console.log("call is in failed", e);
                 dispatch(handleSetCallStatus("failed"));
                 close();
             });
             rtcSession.on("ended", function (e) {
+                callInAudio.loop = false;
+                callInAudio.pause();
+                getCdrData();
                 console.log("call is in ended", e);
                 dispatch(handleSetCallStatus("ended"));
                 toast.info("cuộc goọi đã kết thúc");
             });
             rtcSession.on("confirmed", function (e) {
+                callInAudio.loop = false;
+                callInAudio.pause();
                 console.log("call is in confirmed", e);
                 dispatch(handleSetCallStatus("confirmed"));
             });
@@ -161,7 +183,12 @@ const CallPage = () => {
 
                 <Flex className={styles.callHistory}>
                     {inCall ? (
-                        <InCall phoneNumber={phoneNumber} inCallData={inCallData} />
+                        <InCall
+                            phoneNumber={phoneNumber}
+                            inCallData={inCallData}
+                            checkInCallData={checkInCallData}
+                            setInCallData={setInCallData}
+                        />
                     ) : (
                         <Flex direction='column' w={"100%"} px={30} gap={20}>
                             <PageToolBar
@@ -189,6 +216,7 @@ const CallPage = () => {
                                             cdrData?.docs?.map((item, index) => {
                                                 return (
                                                     <CallHistoryItem
+                                                        getCdrData={getCdrData}
                                                         key={index}
                                                         item={item}
                                                         handleClickCall={handleClickCall}
@@ -244,9 +272,6 @@ const CallPage = () => {
                     </Button>
                     <Button onClick={stopCall} color={"red"}>
                         Tắt máy
-                    </Button>
-                    <Button onClick={close} color={"gray"}>
-                        Thoát
                     </Button>
                 </Flex>
             </Dialog>

@@ -21,6 +21,7 @@ import {
     handleSetWsStatus
 } from "../../redux/slices/jsSipSlice";
 import { toast } from "react-toastify";
+import ringBackAudioCall from "../../assets/audio/ringbacktone.mp3";
 
 const JsSipContext = createContext();
 
@@ -37,6 +38,8 @@ export const JsSipProvider = ({ children }) => {
     const [UA, setUA] = useState(null);
     const dispatch = useDispatch();
     const { user: userData } = useSelector((state) => state.auth);
+
+    const ringBackAudio = new Audio(ringBackAudioCall);
 
     let ua;
     let remoteAudio;
@@ -189,8 +192,11 @@ export const JsSipProvider = ({ children }) => {
                 const foundUri = rtcRequest.from.toString();
                 const delimiterPosition = foundUri.indexOf(";") || null;
 
+                console.log("INCOMING");
+
                 // setCallDirection(CALL_DIRECTION_INCOMING);
                 dispatch(handleSetCallDirection("INCOMING"));
+
                 // setCallStatus(CALL_STATUS_STARTING);
                 setCallCounterpart(foundUri.substring(0, delimiterPosition) || foundUri);
             }
@@ -201,14 +207,22 @@ export const JsSipProvider = ({ children }) => {
 
     const eventHandlers = {
         connecting: function (e) {
-            console.log("call is in progress", e);
+            console.log("call is in connecting", e);
             dispatch(handleSetCallStatus("connecting"));
+
+            ringBackAudio.loop = true;
+            ringBackAudio.play();
         },
         progress: function (e) {
             console.log("call is in progress", e);
             dispatch(handleSetCallStatus("progress"));
+
+            ringBackAudio.loop = false;
+            ringBackAudio.pause();
         },
         failed: function (e) {
+            ringBackAudio.loop = false;
+            ringBackAudio.pause();
             console.log("call failed with cause: ", e);
             dispatch(handleSetCallStatus("failed"));
         },

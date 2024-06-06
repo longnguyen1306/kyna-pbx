@@ -7,10 +7,13 @@ import moment from "moment";
 import ReactAudioPlayer from "react-audio-player";
 import cdrApis from "../../../lib/api/cdrApis";
 import { useDisclosure } from "@mantine/hooks";
+import CallNoteList from "./CallNoteList";
+import { toast } from "react-toastify";
+import callListApis from "../../../lib/api/callListApis";
 
-const InCall = ({ inCallData }) => {
+const InCall = ({ inCallData, setInCallData, checkInCallData }) => {
     const theme = useMantineTheme();
-    const { stopCall, rtcSession } = useContext(JsSipContext);
+    const { stopCall, rtcSession, startCall } = useContext(JsSipContext);
     const { callStatus, callDirection } = useSelector((state) => state.jsSip);
     const [time, setTime] = useState(0);
     const [displayName, setDisplayName] = useState(null);
@@ -19,8 +22,7 @@ const InCall = ({ inCallData }) => {
     const [callHistory, setCallHistory] = useState(null);
     const [loading, setLoading] = useState(false);
     const [opened, { open, close }] = useDisclosure(false);
-
-    console.log("inCallData", inCallData);
+    const [note, setNote] = useState("");
 
     useEffect(() => {
         let idTime;
@@ -66,7 +68,39 @@ const InCall = ({ inCallData }) => {
         });
     }, [rtcSession]);
 
-    console.log("callHistory", callHistory);
+    const getCdrByPhoneNumber = async () => {
+        setLoading(true);
+
+        const res = await cdrApis.getCdrsByPhone(callPhoneNumber?.phoneNumber);
+
+        setCallHistory(res.data);
+
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        getCdrByPhoneNumber();
+    }, []);
+
+    const handleAddNote = async () => {
+        if (note?.length === 0) {
+            toast.error("Nhập nội dung note...");
+            return;
+        }
+
+        const res = await callListApis.updateNoteByCall(inCallData?._id, inCallData.name, note);
+
+        if (res?.code === "success") {
+            toast.success("Thêm note thành công");
+
+            checkInCallData(inCallData.phoneNumber);
+
+            setNote("");
+        } else {
+            console.log("res", res);
+            toast.error(res?.message);
+        }
+    };
 
     return (
         <Flex direction='column' w={"100%"} gap={40}>
@@ -79,8 +113,10 @@ const InCall = ({ inCallData }) => {
                 justify='space-around'
             >
                 <Text>{callDirection === "OUTGOING" ? "Gọi đi" : "Gọi đến"}</Text>
-                <Text>{displayName}</Text>
-                <Text>{callPhoneNumber}</Text>
+
+                <Text>{inCallData?.name}</Text>
+
+                <Text>{inCallData?.phoneNumber}</Text>
 
                 <Text>
                     {callStatus === "connecting"
@@ -94,11 +130,11 @@ const InCall = ({ inCallData }) => {
                               : callStatus}
                 </Text>
 
-                {callStatus === "stop" ? (
+                {callStatus === "stop" || callStatus === "ended" || callStatus === "failed" ? (
                     <Button
                         color='green'
                         size={"md"}
-                        onClick={stopCall}
+                        onClick={() => startCall(inCallData?.phoneNumber)}
                         style={{
                             color: "white"
                         }}
@@ -114,14 +150,30 @@ const InCall = ({ inCallData }) => {
 
             <Flex px={20}>
                 <Flex align='center' gap={20}>
-                    <Textarea resize='vertical' size='md' placeholder='Nhập ghi chú...' rows={4} w={500} />
-                    <Button color='indigo'>Lưu</Button>
+                    <Textarea
+                        resize='vertical'
+                        size='md'
+                        placeholder='Nhập ghi chú...'
+                        rows={4}
+                        w={500}
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                    />
+                    <Button onClick={handleAddNote} color='indigo'>
+                        Lưu
+                    </Button>
                 </Flex>
             </Flex>
 
             <Flex px={20} justify='space-between'>
                 <Flex bg='white' w={"50%"} p={20}>
-                    Danh sách ghi chú
+                    <Flex direction='column'>
+                        {inCallData?.noteList?.length > 0
+                            ? inCallData?.noteList.map((itemCall, index) => (
+                                  <CallNoteList key={index} item={itemCall} />
+                              ))
+                            : "null"}
+                    </Flex>
                 </Flex>
 
                 <Flex bg='white' w={"50%"} p={20} direction='column'>

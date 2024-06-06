@@ -1,10 +1,12 @@
 import { ActionIcon, Button, Flex, Group, Modal, Textarea, TextInput, useMantineTheme } from "@mantine/core";
 import { IconNote } from "@tabler/icons-react";
-import { useState } from "react";
-import { useForm } from "@mantine/form";
+import { useEffect, useState } from "react";
+import { isNotEmpty, useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
+import callListApis from "../../../lib/api/callListApis";
+import { toast } from "react-toastify";
 
-const BtnAddNote = ({ item }) => {
+const BtnAddNote = ({ item, getCdrData }) => {
     const theme = useMantineTheme();
     const [loading, setLoading] = useState(false);
     const [opened, { open, close }] = useDisclosure(false);
@@ -14,12 +16,25 @@ const BtnAddNote = ({ item }) => {
         initialValues: {
             name: item?.name,
             note: ""
+        },
+
+        validate: {
+            note: isNotEmpty("Nhập ghi chú...")
         }
     });
 
-    const handleSaveNote = (values) => {
-        setLoading(true);
-        console.log("values", values);
+    const handleSaveNote = async (values) => {
+        const res = await callListApis.updateNoteByCall(item?._id, values.name, values.note);
+
+        if (res?.code === "success") {
+            toast.success("Thêm note thành công");
+            setLoading(false);
+            close();
+            getCdrData();
+        } else {
+            console.log("res", res);
+            toast.error(res?.message);
+        }
     };
 
     return (
@@ -28,6 +43,7 @@ const BtnAddNote = ({ item }) => {
                 <form onSubmit={form.onSubmit(handleSaveNote)}>
                     <Flex direction='column' gap={10} c={theme.colors.gray[6]}>
                         <TextInput
+                            disabled={loading}
                             label='Tên khách'
                             placeholder='Nhập tên khách'
                             key={form.key("name")}
@@ -38,17 +54,20 @@ const BtnAddNote = ({ item }) => {
                         />
 
                         <Textarea
+                            disabled={loading}
                             rows={4}
                             label='Ghi chú:'
                             placeholder='Nhập ghi chú'
+                            key={form.key("note")}
+                            {...form.getInputProps("note")}
                             styles={{
                                 input: { color: theme.colors.gray[6] }
                             }}
                         />
 
                         <Group justify='flex-end' mt='md'>
-                            <Button loading={loading} type='submit'>
-                                Submit
+                            <Button loading={loading} type='submit' color='indigo' h={40}>
+                                Lưu note
                             </Button>
                         </Group>
                     </Flex>

@@ -22,7 +22,7 @@ const CallNoteList = ({ item }) => {
                             fontStyle: "italic"
                         }}
                     >
-                        {moment(item?.calldate).utcOffset(14).format("DD/MM/YYYY, HH:mm:ss")}
+                        {moment(item?.date).format("DD/MM/YYYY, HH:mm:ss")}
                     </Text>
                 </Flex>
 
@@ -35,7 +35,7 @@ const CallNoteList = ({ item }) => {
                             fontStyle: "italic"
                         }}
                     >
-                        long.nguyen@kynaforkids.vn
+                        {item?.createdBy}
                     </Text>
                 </Flex>
 
@@ -51,11 +51,7 @@ const CallNoteList = ({ item }) => {
                             fontStyle: "italic"
                         }}
                     >
-                        Cùng với việc xin lỗi các khách hàng, đối tác vì sự cố gián đoạn dịch vụ không mong
-                        muốn, đại diện Vietnam Post thông tin thêm: Hiện tại, doanh nghiệp đang làm việc với
-                        các cơ quan chức năng và phối hợp với các đối tác là những tập đoàn CNTT hàng đầu Việt
-                        Nam để nỗ lực xử lý, khắc phục sự cố trong thời gian sớm nhất, đảm bảo tối đa quyền
-                        lợi khách hàng.
+                        {item?.note}
                     </Text>
                 </Flex>
             </Flex>
