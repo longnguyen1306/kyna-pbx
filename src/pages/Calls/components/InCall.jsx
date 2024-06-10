@@ -18,7 +18,7 @@ import {
 } from "../../../providers/sips/libs/enums";
 import callNoteApis from "../../../lib/api/callNoteApis";
 
-const InCall = ({ inCallData, setInCallData, checkInCallData }) => {
+const InCall = ({ inCallData, setInCallData, inCall }) => {
     const theme = useMantineTheme();
     const { stopCall, rtcSession, startCall } = useContext(JsSipContext);
     const { callStatus, callDirection } = useSelector((state) => state.jsSip);
@@ -128,7 +128,7 @@ const InCall = ({ inCallData, setInCallData, checkInCallData }) => {
         getCdrByPhoneNumber();
     }, [inCallData]);
 
-    console.log("inCallData", inCallData);
+    console.log("inCall", inCall);
 
     return (
         <Flex direction='column' w={"100%"} gap={40}>

@@ -26,7 +26,7 @@ const regexPhone = new RegExp("^[0-9]+$");
 const CallPage = () => {
     const theme = useMantineTheme();
     const [phoneNumber, setPhoneNumber] = useState("");
-    const { stopCall, rtcSession, answerCall, startCall } = useContext(JsSipContext);
+    const { stopCall, rtcSession, answerCall, startCall, originator } = useContext(JsSipContext);
     const { inCall } = useSelector((state) => state.jsSip);
     const { user } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
@@ -46,12 +46,24 @@ const CallPage = () => {
             setInCallData(call?.data);
             await callHistoryApis.updateTimeUpdated(call?.data?._id);
         } else {
-            const newCall = await callHistoryApis.createNewCall(phoneNumber);
+            if (originator === "remote") {
+                const newCall = await callHistoryApis.createNewCall(
+                    rtcSession ? rtcSession?.remote_identity?.uri?.user : null
+                );
 
-            console.log("newCall", newCall);
+                console.log("newCall", newCall);
 
-            if (newCall?.code === "success") {
-                setInCallData(newCall?.data);
+                if (newCall?.code === "success") {
+                    setInCallData(newCall?.data);
+                }
+            } else {
+                const newCall = await callHistoryApis.createNewCall(phoneNumber);
+
+                console.log("newCall", newCall);
+
+                if (newCall?.code === "success") {
+                    setInCallData(newCall?.data);
+                }
             }
         }
     };
@@ -136,6 +148,9 @@ const CallPage = () => {
         }
     }, [rtcSession]);
 
+    // console.log("rtcSession", rtcSession.remote_identity.uri.user);
+    console.log("originator", originator);
+
     const handleClickAnswerCall = () => {
         close();
         dispatch(handleSetInCall(true));
@@ -159,6 +174,14 @@ const CallPage = () => {
     useEffect(() => {
         getCdrData();
     }, [inCall, activePage]);
+
+    useEffect(() => {
+        if (inCall !== true) {
+            if (rtcSession) {
+                stopCall();
+            }
+        }
+    }, [inCall]);
 
     return (
         <>
@@ -184,6 +207,7 @@ const CallPage = () => {
                 <Flex className={styles.callHistory}>
                     {inCall ? (
                         <InCall
+                            inCall={inCall}
                             phoneNumber={phoneNumber}
                             inCallData={inCallData}
                             checkInCallData={checkInCallData}

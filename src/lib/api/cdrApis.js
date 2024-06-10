@@ -54,4 +54,23 @@ const getCallNoteData = async (item) => {
     }
 };
 
-export default { updateCdrAfterCall, getCdrsByPhone, getCallNoteData };
+const getAllCdrByTimeAndExtension = async ({ startTime, endTime }) => {
+    try {
+        const accessToken = getToken.getAccessToken();
+
+        const data = await axiosCustom.get(
+            `/cdr/get-cdr-by-time-and-extension?startTime=${startTime}&endTime=${endTime}`,
+            {
+                headers: {
+                    authorization: `Bearer ${accessToken}`
+                }
+            }
+        );
+
+        return data.data;
+    } catch (err) {
+        return err.response?.data;
+    }
+};
+
+export default { updateCdrAfterCall, getCdrsByPhone, getCallNoteData, getAllCdrByTimeAndExtension };
