@@ -3,8 +3,9 @@ import { IconNote } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
-import callListApis from "../../../lib/api/callListApis";
 import { toast } from "react-toastify";
+import callNoteApis from "../../../lib/api/callNoteApis";
+import callHistoryApis from "../../../lib/api/callHistoryApis";
 
 const BtnAddNote = ({ item, getCdrData }) => {
     const theme = useMantineTheme();
@@ -24,7 +25,11 @@ const BtnAddNote = ({ item, getCdrData }) => {
     });
 
     const handleSaveNote = async (values) => {
-        const res = await callListApis.updateNoteByCall(item?._id, values.name, values.note);
+        if (values.name !== item?.name) {
+            await callHistoryApis.updateCallName(item?._id, values.name);
+        }
+
+        const res = await callNoteApis.createNewCallNote(item?._id, values.note);
 
         if (res?.code === "success") {
             toast.success("Thêm note thành công");

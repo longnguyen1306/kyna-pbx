@@ -15,9 +15,11 @@ const CallHistoryItem = ({ item, handleClickCall, getCdrData }) => {
     const [callHistory, setCallHistory] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    const [callNoteLoading, setCallNoteLoading] = useState(false);
+    const [callNoteData, setCallNoteData] = useState([]);
+
     const getCdrByPhoneNumber = async () => {
         setLoading(true);
-
         const res = await cdrApis.getCdrsByPhone(item?.phoneNumber);
 
         setCallHistory(res.data);
@@ -25,9 +27,24 @@ const CallHistoryItem = ({ item, handleClickCall, getCdrData }) => {
         setLoading(false);
     };
 
+    const getCallNoteData = async () => {
+        setCallNoteLoading(true);
+        const res = await cdrApis.getCallNoteData(item);
+
+        setCallNoteData(res.data);
+
+        setCallNoteLoading(false);
+    };
+
     useEffect(() => {
         if (openNoteHistory) {
             getCdrByPhoneNumber();
+            getCallNoteData();
+        }
+
+        if (!openNoteHistory) {
+            setCallNoteData([]);
+            setCallHistory([]);
         }
     }, [openNoteHistory]);
 
@@ -64,7 +81,7 @@ const CallHistoryItem = ({ item, handleClickCall, getCdrData }) => {
                             borderRadius: "50%"
                         }}
                     >
-                        802
+                        {item?.phoneNumber.slice(0, 3)}
                     </Flex>
 
                     <Flex
@@ -113,11 +130,11 @@ const CallHistoryItem = ({ item, handleClickCall, getCdrData }) => {
                                     borderRight: `1px solid ${theme.colors.gray[5]}`
                                 }}
                             >
-                                {item?.agent?.email}
+                                {item?.callByEmail}
                             </Text>
 
                             <Text c={theme.colors.gray[5]} fz={13} pr={10} mr={10}>
-                                {item?.accountCode}
+                                {item?.callBySipNumber}
                             </Text>
                         </Flex>
                     </Flex>
@@ -166,11 +183,17 @@ const CallHistoryItem = ({ item, handleClickCall, getCdrData }) => {
                             }}
                         >
                             <Flex direction='column'>
-                                {item?.noteList?.length > 0
-                                    ? item?.noteList.map((itemCall, index) => (
-                                          <CallNoteList key={index} item={itemCall} call={item} />
-                                      ))
-                                    : "null"}
+                                {callNoteLoading ? (
+                                    "Loading..."
+                                ) : (
+                                    <>
+                                        {callNoteData?.length > 0
+                                            ? callNoteData.map((itemCall, index) => (
+                                                  <CallNoteList key={index} item={itemCall} call={item} />
+                                              ))
+                                            : "null"}
+                                    </>
+                                )}
                             </Flex>
                         </ScrollArea>
 

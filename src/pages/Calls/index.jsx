@@ -9,10 +9,17 @@ import { handleSetCallStatus, handleSetInCall } from "../../redux/slices/jsSipSl
 import InCall from "./components/InCall";
 import CallHistoryItem from "./components/CallHistoryItem";
 import styles from "../../assets/styles/Calls.module.scss";
-import callListApis from "../../lib/api/callListApis";
 import CallPanel from "./components/CallPanel";
 import PageToolBar from "./components/PageToolBar";
 import callInAudioFile from "../../assets/audio/ringIncomingCall.mp3";
+import callHistoryApis from "../../lib/api/callHistoryApis";
+import {
+    CALL_STATUS_CONFIRMED,
+    CALL_STATUS_ENDED,
+    CALL_STATUS_FAILED,
+    CALL_STATUS_PROGRESS,
+    CALL_STATUS_STARTING
+} from "../../providers/sips/libs/enums";
 
 const regexPhone = new RegExp("^[0-9]+$");
 
@@ -33,33 +40,26 @@ const CallPage = () => {
     const callInAudio = new Audio(callInAudioFile);
 
     const checkInCallData = async (number) => {
-        const call = await callListApis.getCallByPhone(number);
+        const call = await callHistoryApis.getCallByPhoneAndEmail(number);
 
         if (call.code === "success") {
-            await callListApis.updateCall(number).then((c) => {
-                setInCallData(call?.data);
-            });
-        } else if (call.code === "not_found") {
-            const data = {
-                name: number,
-                phoneNumber: number,
-                agent: {
-                    name: user?.user?.name,
-                    email: user?.user?.email
-                },
-                accountCode: user?.user?.sipNumber
-            };
+            setInCallData(call?.data);
+            await callHistoryApis.updateTimeUpdated(call?.data?._id);
+        } else {
+            const newCall = await callHistoryApis.createNewCall(phoneNumber);
 
-            const newCall = await callListApis.makeNewCall(data);
+            console.log("newCall", newCall);
+
             if (newCall?.code === "success") {
                 setInCallData(newCall?.data);
             }
         }
     };
 
-    const handleClickCall = async (phone) => {
+    const handleClickCall = async (phone = null) => {
         if (phone) {
             dispatch(handleSetInCall(true));
+
             checkInCallData(phone).then(() => {
                 startCall(phone);
             });
@@ -105,18 +105,18 @@ const CallPage = () => {
             });
             rtcSession.on("connecting", function (e) {
                 console.log("call is in connecting", e);
-                dispatch(handleSetCallStatus("connecting"));
+                dispatch(handleSetCallStatus(CALL_STATUS_STARTING));
             });
             rtcSession.on("progress", function (e) {
                 console.log("call is in progress", e);
-                dispatch(handleSetCallStatus("progress"));
+                dispatch(handleSetCallStatus(CALL_STATUS_PROGRESS));
             });
             rtcSession.on("failed", function (e) {
                 callInAudio.loop = false;
                 callInAudio.pause();
                 getCdrData();
                 console.log("call is in failed", e);
-                dispatch(handleSetCallStatus("failed"));
+                dispatch(handleSetCallStatus(CALL_STATUS_FAILED));
                 close();
             });
             rtcSession.on("ended", function (e) {
@@ -124,14 +124,14 @@ const CallPage = () => {
                 callInAudio.pause();
                 getCdrData();
                 console.log("call is in ended", e);
-                dispatch(handleSetCallStatus("ended"));
+                dispatch(handleSetCallStatus(CALL_STATUS_ENDED));
                 toast.info("cuộc goọi đã kết thúc");
             });
             rtcSession.on("confirmed", function (e) {
                 callInAudio.loop = false;
                 callInAudio.pause();
                 console.log("call is in confirmed", e);
-                dispatch(handleSetCallStatus("confirmed"));
+                dispatch(handleSetCallStatus(CALL_STATUS_CONFIRMED));
             });
         }
     }, [rtcSession]);
@@ -145,7 +145,7 @@ const CallPage = () => {
     // cdr data
     const getCdrData = async () => {
         setLoading(true);
-        const res = await callListApis.getCallByUser(activePage);
+        const res = await callHistoryApis.getCallByEmail(activePage);
 
         if (!res) return toast.error("Lỗi");
 

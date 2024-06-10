@@ -22,7 +22,7 @@ const CallNoteList = ({ item }) => {
                             fontStyle: "italic"
                         }}
                     >
-                        {moment(item?.date).format("DD/MM/YYYY, HH:mm:ss")}
+                        {moment(item?.createdAt).format("DD/MM/YYYY, HH:mm:ss")}
                     </Text>
                 </Flex>
 
@@ -35,7 +35,7 @@ const CallNoteList = ({ item }) => {
                             fontStyle: "italic"
                         }}
                     >
-                        {item?.createdBy}
+                        {item?.createdByEmail}
                     </Text>
                 </Flex>
 

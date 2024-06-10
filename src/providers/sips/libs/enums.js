@@ -1,18 +1,23 @@
-export const SIP_STATUS_DISCONNECTED = "sipStatus/DISCONNECTED";
-export const SIP_STATUS_CONNECTING = "sipStatus/CONNECTING";
-export const SIP_STATUS_CONNECTED = "sipStatus/CONNECTED";
-export const SIP_STATUS_REGISTERED = "sipStatus/REGISTERED";
-export const SIP_STATUS_ERROR = "sipStatus/ERROR";
+export const SIP_STATUS_DISCONNECTED = "DISCONNECTED";
+export const SIP_STATUS_CONNECTING = "CONNECTING";
+export const SIP_STATUS_CONNECTED = "CONNECTED";
+export const SIP_STATUS_REGISTERED = "REGISTERED";
+export const SIP_STATUS_ERROR = "ERROR";
 
-export const WS_STATUS_CONNECTING = "wsStatus/CONNECTING";
+export const WS_STATUS_CONNECTING = "CONNECTING";
+export const WS_STATUS_CONNECTED = "CONNECTED";
+export const WS_STATUS_DISCONNECTED = "DISCONNECTED";
 
 export const SIP_ERROR_TYPE_CONFIGURATION = "sipErrorType/CONFIGURATION";
 export const SIP_ERROR_TYPE_CONNECTION = "sipErrorType/CONNECTION";
 export const SIP_ERROR_TYPE_REGISTRATION = "sipErrorType/REGISTRATION";
 
-export const CALL_STATUS_IDLE = "callStatus/IDLE";
-export const CALL_STATUS_STARTING = "callStatus/STARTING";
-export const CALL_STATUS_ACTIVE = "callStatus/ACTIVE";
+export const CALL_STATUS_IDLE = "IDLE";
+export const CALL_STATUS_STARTING = "STARTING";
+export const CALL_STATUS_PROGRESS = "PROGRESS";
+export const CALL_STATUS_FAILED = "FAILED";
+export const CALL_STATUS_ENDED = "ENDED";
+export const CALL_STATUS_CONFIRMED = "CONFIRMED";
 export const CALL_STATUS_STOPPING = "callStatus/STOPPING";
 
 export const CALL_DIRECTION_INCOMING = "callDirection/INCOMING";

@@ -1,7 +1,10 @@
 import { Flex, Group, Input, Loader, Pagination, Radio, Text } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
+import { useState } from "react";
 
 const PageToolBar = ({ cdrData, loading, activePage, setPage }) => {
+    const [checkBoxFilterData, setCheckBoxFilterData] = useState("all");
+
     return (
         <Flex direction='column' justify='space-between' h={100}>
             <Flex h={"50%"} align={"center"} justify='space-between'>
@@ -22,8 +25,8 @@ const PageToolBar = ({ cdrData, loading, activePage, setPage }) => {
                 <Flex>
                     <Radio.Group
                         name='favoriteFramework'
-                        // value={checkBoxFilterData}
-                        // onChange={setCheckBoxFilterData}
+                        value={checkBoxFilterData}
+                        onChange={setCheckBoxFilterData}
                     >
                         <Group mt='xs'>
                             <Radio

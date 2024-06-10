@@ -23,7 +23,6 @@ export const jsSipSlice = createSlice({
             state.wsStatus = action.payload;
         },
         handleSetInCall: (state, action) => {
-            console.log("action.payload", action.payload);
             state.inCall = action.payload;
         },
         handleSetCallStatus: (state, action) => {

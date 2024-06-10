@@ -16,7 +16,7 @@ const CallPanel = ({ phoneNumber, setPhoneNumber, handleClickCall }) => {
 
                 <ActionIcon
                     className={styles.callBtn}
-                    onClick={() => handleClickCall(phoneNumber)}
+                    onClick={() => handleClickCall()}
                     variant='filled'
                     color='indigo'
                     size={50}

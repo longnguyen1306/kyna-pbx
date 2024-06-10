@@ -2,7 +2,11 @@ import * as JsSIP from "jssip";
 import { createContext, useEffect, useState } from "react";
 import {
     CALL_DIRECTION_OUTGOING,
+    CALL_STATUS_CONFIRMED,
+    CALL_STATUS_ENDED,
+    CALL_STATUS_FAILED,
     CALL_STATUS_IDLE,
+    CALL_STATUS_PROGRESS,
     CALL_STATUS_STARTING,
     SIP_ERROR_TYPE_CONFIGURATION,
     SIP_ERROR_TYPE_CONNECTION,
@@ -11,7 +15,10 @@ import {
     SIP_STATUS_CONNECTING,
     SIP_STATUS_DISCONNECTED,
     SIP_STATUS_ERROR,
-    SIP_STATUS_REGISTERED
+    SIP_STATUS_REGISTERED,
+    WS_STATUS_CONNECTED,
+    WS_STATUS_CONNECTING,
+    WS_STATUS_DISCONNECTED
 } from "./libs/enums";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,15 +29,12 @@ import {
 } from "../../redux/slices/jsSipSlice";
 import { toast } from "react-toastify";
 import ringBackAudioCall from "../../assets/audio/ringbacktone.mp3";
+import callHistoryApis from "../../lib/api/callHistoryApis";
+import cdrApis from "../../lib/api/cdrApis";
 
 const JsSipContext = createContext();
 
 export const JsSipProvider = ({ children }) => {
-    const [sipStatus, setSipStatus] = useState(null);
-    const [sipErrorType, setSipErrorType] = useState(null);
-    const [sipErrorMessage, setSipErrorMessage] = useState(null);
-    const [callStatus, setCallStatus] = useState(null);
-    const [callDirection, setCallDirection] = useState(null);
     const [callCounterpart, setCallCounterpart] = useState(null);
     const [rtcSession, setRtcSession] = useState(null);
     const [rtcRequest, setRtcRequest] = useState(null);
@@ -55,11 +59,7 @@ export const JsSipProvider = ({ children }) => {
         const user = userData?.user?.sipNumber;
         const password = userData?.user?.sipPassword;
 
-        if (!user) {
-            setSipStatus(SIP_STATUS_DISCONNECTED);
-            setSipErrorType(null);
-            setSipErrorMessage(null);
-
+        if (!user || !password) {
             dispatch(handleSetSipStatus(SIP_STATUS_DISCONNECTED));
 
             return;
@@ -76,12 +76,6 @@ export const JsSipProvider = ({ children }) => {
             });
             setUA(ua);
         } catch (error) {
-            console.log("Error", error.message, error);
-
-            setSipStatus(SIP_STATUS_ERROR);
-            setSipErrorType(SIP_ERROR_TYPE_CONFIGURATION);
-            setSipErrorMessage(error.message);
-
             dispatch(handleSetSipStatus(SIP_STATUS_ERROR));
 
             return;
@@ -93,11 +87,7 @@ export const JsSipProvider = ({ children }) => {
                 return;
             }
 
-            setSipStatus(SIP_STATUS_CONNECTING);
-            setSipErrorType(null);
-            setSipErrorMessage(null);
-
-            dispatch(handleSetWsStatus("connecting"));
+            dispatch(handleSetWsStatus(WS_STATUS_CONNECTING));
         });
 
         ua.on("connected", () => {
@@ -106,11 +96,7 @@ export const JsSipProvider = ({ children }) => {
                 return;
             }
 
-            setSipStatus(SIP_STATUS_CONNECTED);
-            setSipErrorType(null);
-            setSipErrorMessage(null);
-
-            dispatch(handleSetWsStatus("connected"));
+            dispatch(handleSetWsStatus(WS_STATUS_CONNECTED));
         });
 
         ua.on("disconnected", () => {
@@ -119,11 +105,7 @@ export const JsSipProvider = ({ children }) => {
                 return;
             }
 
-            setSipStatus(SIP_STATUS_ERROR);
-            setSipErrorType(SIP_ERROR_TYPE_CONNECTION);
-            setSipErrorMessage("disconnected");
-
-            dispatch(handleSetWsStatus("disconnected"));
+            dispatch(handleSetWsStatus(WS_STATUS_DISCONNECTED));
         });
 
         ua.on("registered", (data) => {
@@ -132,10 +114,7 @@ export const JsSipProvider = ({ children }) => {
                 return;
             }
 
-            setSipStatus(SIP_STATUS_REGISTERED);
-            setCallStatus(CALL_STATUS_IDLE);
-
-            dispatch(handleSetSipStatus("registered"));
+            dispatch(handleSetSipStatus(SIP_STATUS_REGISTERED));
         });
 
         ua.on("unregistered", () => {
@@ -145,17 +124,9 @@ export const JsSipProvider = ({ children }) => {
             }
 
             if (ua.isConnected()) {
-                setSipStatus(SIP_STATUS_CONNECTED);
-                setCallStatus(CALL_STATUS_IDLE);
-                setCallDirection(null);
-
-                dispatch(handleSetSipStatus("SIP_STATUS_CONNECTED"));
+                dispatch(handleSetSipStatus(SIP_STATUS_CONNECTED));
             } else {
-                setSipStatus(SIP_STATUS_DISCONNECTED);
-                setCallStatus(CALL_STATUS_IDLE);
-                setCallDirection(null);
-
-                dispatch(handleSetSipStatus("SIP_STATUS_DISCONNECTED"));
+                dispatch(handleSetSipStatus(SIP_STATUS_DISCONNECTED));
             }
         });
 
@@ -165,9 +136,9 @@ export const JsSipProvider = ({ children }) => {
                 return;
             }
 
-            setSipStatus(SIP_STATUS_ERROR);
-            setSipErrorType(SIP_ERROR_TYPE_REGISTRATION);
-            setSipErrorMessage(data);
+            console.log("registrationFailed", data);
+
+            dispatch(handleSetSipStatus(SIP_STATUS_ERROR));
         });
 
         // rtc session
@@ -184,20 +155,15 @@ export const JsSipProvider = ({ children }) => {
                 const foundUri = rtcRequest.to.toString();
                 const delimiterPosition = foundUri.indexOf(";") || null;
 
-                setCallDirection(CALL_DIRECTION_OUTGOING);
                 dispatch(handleSetCallDirection("OUTGOING"));
-                // setCallStatus(CALL_STATUS_STARTING);
-                // setCallCounterpart(foundUri.substring(0, delimiterPosition) || foundUri);
             } else if (originator === "remote") {
                 const foundUri = rtcRequest.from.toString();
                 const delimiterPosition = foundUri.indexOf(";") || null;
 
                 console.log("INCOMING");
 
-                // setCallDirection(CALL_DIRECTION_INCOMING);
                 dispatch(handleSetCallDirection("INCOMING"));
 
-                // setCallStatus(CALL_STATUS_STARTING);
                 setCallCounterpart(foundUri.substring(0, delimiterPosition) || foundUri);
             }
         });
@@ -208,33 +174,36 @@ export const JsSipProvider = ({ children }) => {
     const eventHandlers = {
         connecting: function (e) {
             console.log("call is in connecting", e);
-            dispatch(handleSetCallStatus("connecting"));
+            dispatch(handleSetCallStatus(CALL_STATUS_STARTING));
 
             ringBackAudio.loop = true;
             ringBackAudio.play();
         },
         progress: function (e) {
             console.log("call is in progress", e);
-            dispatch(handleSetCallStatus("progress"));
+            dispatch(handleSetCallStatus(CALL_STATUS_PROGRESS));
 
             ringBackAudio.loop = false;
             ringBackAudio.pause();
         },
-        failed: function (e) {
+        failed: async function (e) {
             ringBackAudio.loop = false;
             ringBackAudio.pause();
             console.log("call failed with cause: ", e);
-            dispatch(handleSetCallStatus("failed"));
+            dispatch(handleSetCallStatus(CALL_STATUS_FAILED));
+            await cdrApis.updateCdrAfterCall();
         },
         ended: async function (e) {
             console.log("call ended with cause: ", e);
-            dispatch(handleSetCallStatus("ended"));
-            // dispatch(handleSetInCall(false));
+            dispatch(handleSetCallStatus(CALL_STATUS_ENDED));
             toast.info("cuộc goọi đã kết thúc");
+            if (e.originator === "remote") {
+                await cdrApis.updateCdrAfterCall();
+            }
         },
         confirmed: function (e) {
             console.log("call confirmed", e);
-            dispatch(handleSetCallStatus("confirmed"));
+            dispatch(handleSetCallStatus(CALL_STATUS_CONFIRMED));
         }
     };
 
@@ -259,7 +228,7 @@ export const JsSipProvider = ({ children }) => {
 
         UA.call(destination, options);
 
-        setCallStatus(CALL_STATUS_STARTING);
+        dispatch(handleSetCallStatus(CALL_STATUS_STARTING));
     };
     // end call
 
@@ -270,7 +239,7 @@ export const JsSipProvider = ({ children }) => {
     // end answerCall
 
     // stop call
-    const stopCall = () => {
+    const stopCall = async () => {
         UA.terminateSessions();
         dispatch(handleSetCallStatus("stop"));
     };

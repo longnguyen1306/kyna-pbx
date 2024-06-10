@@ -40,7 +40,7 @@ const CallDetail = ({ item, call }) => {
                         fontStyle: "italic"
                     }}
                 >
-                    {moment(item?.callDate).utcOffset(14).format("DD/MM/YYYY, HH:mm:ss")}
+                    {moment(item?.callDate).format("DD/MM/YYYY, HH:mm:ss")}
                 </Text>
             </Flex>
 
@@ -54,6 +54,19 @@ const CallDetail = ({ item, call }) => {
                     }}
                 >
                     {item?.callBy}
+                </Text>
+            </Flex>
+
+            <Flex fz={14} gap={6}>
+                DID:
+                <Text
+                    fz={14}
+                    span
+                    style={{
+                        fontStyle: "italic"
+                    }}
+                >
+                    {item?.did ? item?.did : "null"}
                 </Text>
             </Flex>
 
