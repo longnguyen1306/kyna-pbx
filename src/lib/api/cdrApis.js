@@ -54,12 +54,12 @@ const getCallNoteData = async (item) => {
     }
 };
 
-const getAllCdrByTimeAndExtension = async ({ startTime, endTime }) => {
+const getAllCdrByTimeAndExtension = async ({ startTime, endTime, page, searchValue }) => {
     try {
         const accessToken = getToken.getAccessToken();
 
         const data = await axiosCustom.get(
-            `/cdr/get-cdr-by-time-and-extension?startTime=${startTime}&endTime=${endTime}`,
+            `/cdr/get-cdr-by-time-and-extension?startTime=${startTime}&endTime=${endTime}&page=${page}&searchValue=${searchValue}`,
             {
                 headers: {
                     authorization: `Bearer ${accessToken}`
