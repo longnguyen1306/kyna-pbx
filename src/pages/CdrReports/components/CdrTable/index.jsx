@@ -23,7 +23,6 @@ const CdrTable = ({ cdrData, cdrLoading, page, setPage, searchValue, setSearchVa
             <ScrollArea w={"100%"} scrollbars='x'>
                 <Table
                     verticalSpacing='md'
-                    // horizontalSpacing='md'
                     highlightOnHover
                     layout='fixed'
                     styles={{

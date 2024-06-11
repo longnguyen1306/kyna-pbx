@@ -8,6 +8,7 @@ import theme from "./configs/theme";
 import { Provider } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "@mantine/charts/styles.css";
 
 import { RouterProvider } from "react-router-dom";
 import routers from "./routers";

@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import moment from "moment/moment";
 import cdrApis from "../../lib/api/cdrApis";
 import PageToolbar from "../../components/home/PageToolbar";
-import HomeChart from "../../components/home/homeChart";
+import HomeChart from "./components/homeChart";
 import CdrTable from "./components/CdrTable";
+import PanelCount from "./components/PanelCount";
 
 const CdrReports = () => {
     const theme = useMantineTheme();
@@ -17,40 +18,54 @@ const CdrReports = () => {
     const [searchValue, setSearchValue] = useState("");
 
     const handleClick = () => {
-        setLoading(true);
-
-        setTimeout(() => {
-            setLoading(false);
-        }, 2000);
+        getCdrData();
     };
 
     const getCdrData = async () => {
         setCdrLoading(true);
+        setLoading(true);
 
-        const startTime = moment(Date.now())
-            .subtract(1, "month")
-            .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-            .unix();
+        let startTime;
+
+        switch (timeSelected) {
+            case "day":
+                startTime = moment(Date.now()).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).unix();
+                break;
+
+            case "week":
+                startTime = moment(Date.now())
+                    .subtract(1, "week")
+                    .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+                    .unix();
+                break;
+
+            case "mon":
+                startTime = moment(Date.now())
+                    .subtract(1, "month")
+                    .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+                    .unix();
+                break;
+        }
+
         const endTime = moment(Date.now()).set({ hour: 23, minute: 59, second: 59, millisecond: 99 }).unix();
 
         const data = await cdrApis.getAllCdrByTimeAndExtension({ startTime, endTime, page, searchValue });
 
-        if (data.code === "success") {
-            setCdrData(data.data);
+        setCdrData(data.data);
 
-            setCdrLoading(false);
-        }
+        setCdrLoading(false);
+        setLoading(false);
     };
 
     useEffect(() => {
         getCdrData();
-    }, [page, searchValue]);
+    }, [page, searchValue, timeSelected]);
 
     console.log("cdrData", cdrData);
 
     return (
-        <Flex direction='column' gap={16} px={20}>
-            <Flex align='center' justify='space-between' my={20}>
+        <Flex direction='column' gap={30} px={20}>
+            <Flex align='center' justify='space-between' mt={30}>
                 <PageToolbar
                     handleClick={handleClick}
                     loading={loading}
@@ -59,14 +74,19 @@ const CdrReports = () => {
                 />
             </Flex>
 
+            <Flex w='100%'>
+                {cdrData.data?.length > 0 && <PanelCount loading={loading} cdrData={cdrData} />}
+            </Flex>
+
             <Flex align='center' justify='space-between' gap={20} h={400}>
-                <HomeChart />
+                <HomeChart loading={loading} cdrData={cdrData} />
             </Flex>
 
             <Flex>
                 <CdrTable
                     cdrData={cdrData}
                     cdrLoading={cdrLoading}
+                    loading={loading}
                     setPage={setPage}
                     page={page}
                     searchValue={searchValue}
